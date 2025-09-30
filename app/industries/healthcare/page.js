@@ -1,180 +1,260 @@
+'use client'
+
+import { useState } from 'react'
 import { MainLayout } from '@/components/layout/MainLayout'
-import Link from 'next/link'
 import { Button } from '@/components/ui'
+import Link from 'next/link'
 import { 
-  Heart, Clock, Users, BarChart3, Shield, CheckCircle,
-  Stethoscope, Pill, Eye, Brain, ArrowRight, Calendar
+  Heart, Stethoscope, Brain, Eye, Users, Star, Clock, 
+  Calendar, MapPin, Phone, Mail, ChevronRight, Award
 } from 'lucide-react'
 
 export default function HealthcarePage() {
-  const services = [
+  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedService, setSelectedService] = useState(null)
+  const [selectedPersonnel, setSelectedPersonnel] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [selectedTime, setSelectedTime] = useState(null)
+
+  const categories = [
     {
-      name: 'Dentists & Orthodontists',
+      id: 'general-medicine',
+      name: 'General Medicine',
       icon: Stethoscope,
-      href: '/industries/healthcare/dental',
-      description: 'Streamline dental appointments, check-ups, cleanings, and orthodontic treatments.',
-      features: ['Online booking', 'Appointment reminders', 'Patient records integration', 'Treatment scheduling'],
-      waitTime: '15 min avg',
-      satisfaction: '98%'
+      description: 'Primary care physicians and family doctors',
+      color: 'from-blue-500 to-indigo-600',
+      services: [
+        { id: 'general-checkup', name: 'General Health Checkup', duration: '45 min', price: '$120' },
+        { id: 'chronic-care', name: 'Chronic Disease Management', duration: '60 min', price: '$150' },
+        { id: 'preventive-care', name: 'Preventive Care Consultation', duration: '30 min', price: '$90' },
+        { id: 'health-screening', name: 'Health Screening', duration: '90 min', price: '$200' }
+      ]
     },
     {
-      name: 'General Practitioners',
+      id: 'specialist-care',
+      name: 'Specialist Care',
       icon: Heart,
-      href: '/industries/healthcare/gp',
-      description: 'Manage family doctor visits, consultations, and routine health screenings.',
-      features: ['Symptom-based booking', 'Urgent care slots', 'Prescription management', 'Follow-up scheduling'],
-      waitTime: '12 min avg',
-      satisfaction: '96%'
+      description: 'Specialized medical consultations and treatments',
+      color: 'from-red-500 to-pink-600',
+      services: [
+        { id: 'cardiology', name: 'Cardiology Consultation', duration: '60 min', price: '$220' },
+        { id: 'dermatology', name: 'Dermatology Consultation', duration: '45 min', price: '$180' },
+        { id: 'orthopedics', name: 'Orthopedic Consultation', duration: '60 min', price: '$200' },
+        { id: 'endocrinology', name: 'Endocrinology Consultation', duration: '50 min', price: '$190' }
+      ]
     },
     {
-      name: 'Mental Health Therapists',
+      id: 'mental-health',
+      name: 'Mental Health',
       icon: Brain,
-      href: '/industries/healthcare/therapy',
-      description: 'Schedule therapy sessions, counseling, and mental health consultations.',
-      features: ['Confidential booking', 'Session type selection', 'Crisis appointment slots', 'Progress tracking'],
-      waitTime: '8 min avg',
-      satisfaction: '99%'
+      description: 'Psychology, psychiatry, and counseling services',
+      color: 'from-green-500 to-emerald-600',
+      services: [
+        { id: 'therapy-session', name: 'Individual Therapy Session', duration: '60 min', price: '$140' },
+        { id: 'psychiatric-eval', name: 'Psychiatric Evaluation', duration: '90 min', price: '$280' },
+        { id: 'couples-therapy', name: 'Couples Therapy', duration: '75 min', price: '$180' },
+        { id: 'group-therapy', name: 'Group Therapy Session', duration: '90 min', price: '$80' }
+      ]
     },
     {
-      name: 'Diagnostic Centers',
-      icon: Pill,
-      href: '/industries/healthcare/diagnostics',
-      description: 'Organize lab tests, blood work, imaging, and diagnostic procedures.',
-      features: ['Test preparation info', 'Fasting requirements', 'Results scheduling', 'Multiple test booking'],
-      waitTime: '20 min avg',
-      satisfaction: '94%'
-    },
-    {
-      name: 'Physiotherapists',
-      icon: Users,
-      href: '/industries/healthcare/physio',
-      description: 'Coordinate rehabilitation sessions, injury recovery, and mobility treatments.',
-      features: ['Treatment plans', 'Progress monitoring', 'Exercise scheduling', 'Equipment booking'],
-      waitTime: '10 min avg',
-      satisfaction: '97%'
-    },
-    {
-      name: 'Optometrists',
+      id: 'diagnostic-services',
+      name: 'Diagnostic Services',
       icon: Eye,
-      href: '/industries/healthcare/optometry',
-      description: 'Schedule eye exams, vision tests, and optical consultations.',
-      features: ['Eye test booking', 'Frame selection time', 'Contact lens fittings', 'Vision screening'],
-      waitTime: '18 min avg',
-      satisfaction: '95%'
+      description: 'Medical imaging, lab tests, and diagnostic procedures',
+      color: 'from-purple-500 to-violet-600',
+      services: [
+        { id: 'blood-work', name: 'Comprehensive Blood Work', duration: '30 min', price: '$85' },
+        { id: 'mri-scan', name: 'MRI Scan', duration: '45 min', price: '$450' },
+        { id: 'ultrasound', name: 'Ultrasound Examination', duration: '30 min', price: '$150' },
+        { id: 'x-ray', name: 'X-Ray Imaging', duration: '15 min', price: '$75' }
+      ]
     }
   ]
 
-  const benefits = [
-    {
-      icon: Clock,
-      title: 'Reduced Wait Times',
-      description: 'Average 70% reduction in patient waiting times',
-      metric: '70%'
-    },
-    {
-      icon: Users,
-      title: 'Better Patient Flow',
-      description: 'Optimized scheduling improves clinic efficiency',
-      metric: '45%'
-    },
-    {
-      icon: BarChart3,
-      title: 'Increased Capacity',
-      description: 'See more patients with better time management',
-      metric: '35%'
-    },
-    {
-      icon: Shield,
-      title: 'HIPAA Compliant',
-      description: 'Secure, compliant patient data handling',
-      metric: '100%'
-    }
-  ]
+  const personnel = {
+    'general-medicine': [
+      {
+        id: 'dr-sarah-johnson',
+        name: 'Dr. Sarah Johnson',
+        title: 'Family Medicine Physician',
+        rating: 4.9,
+        reviews: 523,
+        specialties: ['Primary Care', 'Preventive Medicine', 'Chronic Disease Management'],
+        image: '/api/placeholder/200/200',
+        experience: '18 years',
+        languages: ['English', 'Spanish']
+      },
+      {
+        id: 'dr-michael-chen',
+        name: 'Dr. Michael Chen',
+        title: 'Internal Medicine Physician',
+        rating: 4.8,
+        reviews: 387,
+        specialties: ['Internal Medicine', 'Diabetes Care', 'Hypertension Management'],
+        image: '/api/placeholder/200/200',
+        experience: '14 years',
+        languages: ['English', 'Mandarin']
+      }
+    ],
+    'specialist-care': [
+      {
+        id: 'dr-emily-rodriguez',
+        name: 'Dr. Emily Rodriguez',
+        title: 'Cardiologist',
+        rating: 4.9,
+        reviews: 445,
+        specialties: ['Cardiology', 'Heart Disease Prevention', 'Echocardiography'],
+        image: '/api/placeholder/200/200',
+        experience: '20 years',
+        languages: ['English', 'Spanish']
+      },
+      {
+        id: 'dr-james-wilson',
+        name: 'Dr. James Wilson',
+        title: 'Orthopedic Surgeon',
+        rating: 4.8,
+        reviews: 298,
+        specialties: ['Orthopedic Surgery', 'Sports Medicine', 'Joint Replacement'],
+        image: '/api/placeholder/200/200',
+        experience: '16 years',
+        languages: ['English']
+      }
+    ],
+    'mental-health': [
+      {
+        id: 'dr-lisa-martinez',
+        name: 'Dr. Lisa Martinez',
+        title: 'Clinical Psychologist',
+        rating: 4.9,
+        reviews: 367,
+        specialties: ['Cognitive Behavioral Therapy', 'Anxiety Disorders', 'Depression Treatment'],
+        image: '/api/placeholder/200/200',
+        experience: '12 years',
+        languages: ['English', 'Spanish']
+      },
+      {
+        id: 'dr-david-kim',
+        name: 'Dr. David Kim',
+        title: 'Psychiatrist',
+        rating: 4.7,
+        reviews: 234,
+        specialties: ['Psychiatric Evaluation', 'Medication Management', 'Mood Disorders'],
+        image: '/api/placeholder/200/200',
+        experience: '15 years',
+        languages: ['English', 'Korean']
+      }
+    ],
+    'diagnostic-services': [
+      {
+        id: 'dr-angela-brown',
+        name: 'Dr. Angela Brown',
+        title: 'Radiologist',
+        rating: 4.8,
+        reviews: 189,
+        specialties: ['Medical Imaging', 'MRI Interpretation', 'CT Scan Analysis'],
+        image: '/api/placeholder/200/200',
+        experience: '11 years',
+        languages: ['English']
+      },
+      {
+        id: 'tech-robert-garcia',
+        name: 'Robert Garcia',
+        title: 'Medical Laboratory Technician',
+        rating: 4.6,
+        reviews: 156,
+        specialties: ['Blood Analysis', 'Laboratory Testing', 'Diagnostic Procedures'],
+        image: '/api/placeholder/200/200',
+        experience: '8 years',
+        languages: ['English', 'Spanish']
+      }
+    ]
+  }
 
-  const features = [
-    'Patient portal integration',
-    'Insurance verification',
-    'Medical record access',
-    'Prescription reminders',
-    'Telehealth scheduling',
-    'Emergency slot management',
-    'Multi-provider coordination',
-    'Automated follow-ups'
-  ]
+  const timeSlots = {
+    Monday: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'],
+    Tuesday: ['8:00 AM', '9:30 AM', '11:00 AM', '1:00 PM', '2:30 PM', '4:00 PM'],
+    Wednesday: ['8:30 AM', '10:00 AM', '11:30 AM', '1:30 PM', '3:00 PM', '4:30 PM'],
+    Thursday: ['8:00 AM', '9:00 AM', '10:30 AM', '12:00 PM', '2:00 PM', '3:30 PM'],
+    Friday: ['8:00 AM', '9:30 AM', '11:00 AM', '1:00 PM', '2:30 PM'],
+    Saturday: ['9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM'],
+    Sunday: ['Closed']
+  }
+
+  const handleBooking = () => {
+    const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
+    const selectedServiceData = selectedCategoryData?.services.find(service => service.id === selectedService)
+    const selectedPersonnelData = personnel[selectedCategory]?.find(person => person.id === selectedPersonnel)
+    
+    const bookingData = {
+      category: selectedCategoryData?.name,
+      service: selectedServiceData?.name,
+      personnel: selectedPersonnelData?.name,
+      day: selectedDay,
+      time: selectedTime,
+      duration: selectedServiceData?.duration,
+      price: selectedServiceData?.price
+    }
+    
+    const params = new URLSearchParams(bookingData)
+    window.location.href = `/booking/confirm?${params.toString()}`
+  }
 
   return (
     <MainLayout>
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-white via-blue-50 to-cyan-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-secondary-900 mb-6">
-                Healthcare Queue Management
-                <span className="block bg-gradient-to-r from-blue-600 via-cyan-600 to-primary-600 bg-clip-text text-transparent">
-                  Made Simple
-                </span>
-              </h1>
-              <p className="text-xl text-secondary-600 mb-8">
-                Reduce patient wait times, improve clinic efficiency, and enhance the healthcare 
-                experience with smart appointment scheduling and queue management.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
-                  Book Healthcare Demo
-                </Button>
-                <Button variant="outline" size="lg">
-                  View Case Studies
-                </Button>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="bg-white rounded-2xl shadow-2xl p-8 border border-secondary-200">
-                <div className="flex items-center mb-6">
-                  <Heart className="w-8 h-8 text-blue-600 mr-3" />
-                  <h3 className="text-xl font-semibold text-secondary-900">
-                    Smart Healthcare Scheduling
-                  </h3>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                    <span className="font-medium text-secondary-800">Dr. Smith - Cardiology</span>
-                    <span className="text-blue-600 font-semibold">Next: 2:30 PM</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-cyan-50 rounded-lg">
-                    <span className="font-medium text-secondary-800">Lab Tests - Building B</span>
-                    <span className="text-cyan-600 font-semibold">Queue: 3 patients</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-primary-50 rounded-lg">
-                    <span className="font-medium text-secondary-800">Pharmacy Pickup</span>
-                    <span className="text-primary-600 font-semibold">Ready now</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <section className="relative bg-gradient-to-br from-blue-50 via-green-50 to-blue-50 py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-green-600/10"></div>
+        <div className="absolute top-20 left-20 w-32 h-32 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/2 w-32 h-32 bg-indigo-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <Heart className="w-20 h-20 mx-auto mb-6 text-blue-600 animate-pulse" />
+            <h1 className="text-4xl md:text-6xl font-bold text-secondary-900 mb-6">
+              Healthcare
+              <span className="block bg-gradient-to-r from-blue-600 via-green-600 to-indigo-600 bg-clip-text text-transparent">
+                Services
+              </span>
+            </h1>
+            <p className="text-xl text-secondary-600 mb-8 max-w-3xl mx-auto">
+              Book appointments with qualified healthcare professionals, specialists, 
+              and mental health providers for comprehensive medical care.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
+      {/* Category Selection */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {benefits.map((benefit, index) => {
-              const IconComponent = benefit.icon
+          <h2 className="text-3xl font-bold text-center text-secondary-900 mb-12">
+            Choose Your Healthcare Service
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories.map((category) => {
+              const IconComponent = category.icon
+              const isSelected = selectedCategory === category.id
+              
               return (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 flex items-center justify-center">
-                    <IconComponent className="w-8 h-8 text-blue-600" />
+                <div
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`group cursor-pointer p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-strong hover:-translate-y-1 ${
+                    isSelected 
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-green-50 shadow-strong' 
+                      : 'border-secondary-200 bg-white hover:border-blue-300'
+                  }`}
+                >
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-r ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="w-8 h-8 text-white" />
                   </div>
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
-                    {benefit.metric}
-                  </div>
-                  <h3 className="font-semibold text-secondary-900 mb-2">
-                    {benefit.title}
+                  <h3 className="text-lg font-bold text-center text-secondary-900 mb-2">
+                    {category.name}
                   </h3>
-                  <p className="text-sm text-secondary-600">
-                    {benefit.description}
+                  <p className="text-sm text-secondary-600 text-center">
+                    {category.description}
                   </p>
                 </div>
               )
@@ -183,155 +263,169 @@ export default function HealthcarePage() {
         </div>
       </section>
 
-      {/* Services Grid */}
-      <section className="py-20 bg-gradient-to-br from-secondary-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-secondary-900 mb-4">
-              Healthcare Services We Support
-            </h2>
-            <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
-              Specialized solutions for different healthcare providers and medical specialties
-            </p>
+      {/* Service Selection */}
+      {selectedCategory && (
+        <section className="py-16 bg-gradient-to-br from-secondary-50 to-blue-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Select Your Service
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {categories.find(cat => cat.id === selectedCategory)?.services.map((service) => (
+                <div
+                  key={service.id}
+                  onClick={() => setSelectedService(service.id)}
+                  className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
+                    selectedService === service.id
+                      ? 'border-blue-500 bg-white shadow-lg'
+                      : 'border-secondary-200 bg-white hover:border-blue-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="text-lg font-semibold text-secondary-900">{service.name}</h4>
+                    <span className="text-blue-600 font-bold">{service.price}</span>
+                  </div>
+                  <div className="flex items-center text-secondary-600">
+                    <Clock className="w-4 h-4 mr-1" />
+                    <span className="text-sm">{service.duration}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+        </section>
+      )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => {
-              const IconComponent = service.icon
-              return (
-                <Link key={index} href={service.href} className="group block">
-                  <div className="bg-white rounded-2xl p-8 shadow-soft hover:shadow-strong transition-all duration-300 hover:-translate-y-1 border border-secondary-100 h-full">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-7 h-7 text-white" />
-                    </div>
-                    
-                    <h3 className="text-xl font-bold text-secondary-900 mb-3 group-hover:text-blue-600 transition-colors">
-                      {service.name}
-                    </h3>
-                    
-                    <p className="text-secondary-600 mb-6">
-                      {service.description}
-                    </p>
-                    
-                    <div className="mb-6">
-                      <h4 className="font-semibold text-secondary-800 mb-3">Key Features:</h4>
-                      <ul className="space-y-2">
-                        {service.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center text-sm text-secondary-700">
-                            <CheckCircle className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0" />
-                            {feature}
-                          </li>
+      {/* Personnel Selection */}
+      {selectedService && (
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Choose Your Healthcare Provider
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {personnel[selectedCategory]?.map((person) => (
+                <div
+                  key={person.id}
+                  onClick={() => setSelectedPersonnel(person.id)}
+                  className={`cursor-pointer p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-strong hover:-translate-y-1 ${
+                    selectedPersonnel === person.id
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-green-50 shadow-strong'
+                      : 'border-secondary-200 bg-white hover:border-blue-300'
+                  }`}
+                >
+                  <div className="flex items-start space-x-4">
+                    <img
+                      src={person.image}
+                      alt={person.name}
+                      className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
+                    />
+                    <div className="flex-1">
+                      <h4 className="text-xl font-bold text-secondary-900">{person.name}</h4>
+                      <p className="text-blue-600 font-medium mb-2">{person.title}</p>
+                      
+                      <div className="flex items-center mb-2">
+                        <div className="flex items-center mr-4">
+                          <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                          <span className="ml-1 font-semibold text-secondary-900">{person.rating}</span>
+                          <span className="ml-1 text-secondary-500">({person.reviews} reviews)</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-secondary-600 mb-3">
+                        <Award className="w-4 h-4 mr-1" />
+                        <span>{person.experience} experience</span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {person.specialties.map((specialty, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full border border-blue-200"
+                          >
+                            {specialty}
+                          </span>
                         ))}
-                      </ul>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mb-4 p-4 bg-blue-50 rounded-lg">
-                      <div className="text-center">
-                        <div className="font-bold text-blue-600">{service.waitTime}</div>
-                        <div className="text-xs text-secondary-600">Wait Time</div>
                       </div>
-                      <div className="text-center">
-                        <div className="font-bold text-cyan-600">{service.satisfaction}</div>
-                        <div className="text-xs text-secondary-600">Satisfaction</div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center text-blue-600 group-hover:text-blue-700 font-medium">
-                      <Calendar className="mr-2 w-4 h-4" />
-                      <span>Book Appointment</span>
-                      <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
-                </Link>
-              )
-            })}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-secondary-900 mb-6">
-                Built for Healthcare Professionals
-              </h2>
-              <p className="text-xl text-secondary-600 mb-8">
-                Our platform understands the unique needs of healthcare providers, 
-                offering specialized features for medical practices.
-              </p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-blue-600 mr-3 flex-shrink-0" />
-                    <span className="text-secondary-700">{feature}</span>
+      {/* Time Selection */}
+      {selectedPersonnel && (
+        <section className="py-16 bg-gradient-to-br from-secondary-50 to-blue-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Select Day & Time
+            </h3>
+            
+            <div className="bg-white rounded-2xl shadow-soft p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+                {Object.entries(timeSlots).map(([day, slots]) => (
+                  <div key={day} className="text-center">
+                    <h4 className="font-semibold text-secondary-900 mb-4 pb-2 border-b border-secondary-200">
+                      {day}
+                    </h4>
+                    <div className="space-y-2">
+                      {slots[0] === 'Closed' ? (
+                        <div className="text-secondary-400 text-sm py-2">Closed</div>
+                      ) : (
+                        slots.map((time) => (
+                          <button
+                            key={`${day}-${time}`}
+                            onClick={() => {
+                              setSelectedDay(day)
+                              setSelectedTime(time)
+                            }}
+                            className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              selectedDay === day && selectedTime === time
+                                ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-md'
+                                : 'bg-secondary-50 text-secondary-700 hover:bg-blue-100 hover:text-blue-700'
+                            }`}
+                          >
+                            {time}
+                          </button>
+                        ))
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
-              
-              <div className="mt-8">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white">
-                  Get Healthcare Demo
-                </Button>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-8">
-              <h3 className="text-2xl font-bold text-secondary-900 mb-6 text-center">
-                Healthcare Compliance
-              </h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-center p-4 bg-white rounded-lg shadow-sm">
-                  <Shield className="w-8 h-8 text-blue-600 mr-4" />
-                  <div>
-                    <h4 className="font-semibold text-secondary-900">HIPAA Compliant</h4>
-                    <p className="text-sm text-secondary-600">Full patient data protection</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center p-4 bg-white rounded-lg shadow-sm">
-                  <CheckCircle className="w-8 h-8 text-cyan-600 mr-4" />
-                  <div>
-                    <h4 className="font-semibold text-secondary-900">SOC 2 Certified</h4>
-                    <p className="text-sm text-secondary-600">Enterprise security standards</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center p-4 bg-white rounded-lg shadow-sm">
-                  <Shield className="w-8 h-8 text-primary-600 mr-4" />
-                  <div>
-                    <h4 className="font-semibold text-secondary-900">End-to-End Encryption</h4>
-                    <p className="text-sm text-secondary-600">Secure data transmission</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 via-cyan-600 to-primary-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Transform Your Healthcare Practice
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of healthcare providers using Smartq to improve patient experience and operational efficiency.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-blue-700 hover:bg-blue-50">
-              Schedule Healthcare Demo
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-700">
-              Contact Healthcare Team
-            </Button>
+      {/* Book Now Button */}
+      {selectedTime && (
+        <section className="py-16 bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-8 border border-blue-200">
+              <h3 className="text-2xl font-bold text-secondary-900 mb-4">
+                Ready to Book Your Appointment?
+              </h3>
+              <p className="text-secondary-600 mb-6">
+                You&apos;ve selected an appointment on {selectedDay} at {selectedTime}
+              </p>
+              <Button 
+                onClick={handleBooking}
+                size="lg" 
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                Book Now
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </MainLayout>
   )
 }

@@ -1,353 +1,427 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
-import { Button, Card, CardContent } from '@/components/ui'
-import { MainLayout } from '@/components/layout'
-import { Calendar, Clock, Star, ChevronRight, Dumbbell, Heart, Target } from 'lucide-react'
+import { MainLayout } from '@/components/layout/MainLayout'
+import { Button } from '@/components/ui'
+import Link from 'next/link'
+import { 
+  Dumbbell, Heart, Target, Users, Star, Clock, 
+  Calendar, MapPin, Phone, Mail, ChevronRight, Award
+} from 'lucide-react'
 
-/**
- * Sports & Fitness Services Page
- * Displays fitness services and trainers for sports and fitness appointments
- */
 export default function SportsFitnessPage() {
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedService, setSelectedService] = useState(null)
+  const [selectedPersonnel, setSelectedPersonnel] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [selectedTime, setSelectedTime] = useState(null)
 
-  const services = [
+  const categories = [
     {
       id: 'personal-training',
-      name: 'Personal Trainers',
-      description: 'One-on-one sessions, small group training, and fitness assessments',
-      icon: '🏋️',
-      personnel: [
-        {
-          id: 1,
-          name: 'Marcus Thompson',
-          specialty: 'Certified Personal Trainer',
-          experience: '8 years',
-          rating: 4.9,
-          photo: '/api/placeholder/150/150',
-          services: ['Weight Training', 'HIIT', 'Strength Building', 'Fitness Assessment'],
-          availability: {
-            monday: ['6:00 AM', '7:00 AM', '5:00 PM', '6:00 PM'],
-            tuesday: ['6:00 AM', '8:00 AM', '12:00 PM', '5:30 PM'],
-            wednesday: ['6:30 AM', '7:30 AM', '4:00 PM', '6:00 PM'],
-            thursday: ['6:00 AM', '12:00 PM', '5:00 PM', '7:00 PM'],
-            friday: ['6:00 AM', '7:00 AM', '4:30 PM'],
-            saturday: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM'],
-            sunday: ['9:00 AM', '10:00 AM', '4:00 PM']
-          }
-        },
-        {
-          id: 2,
-          name: 'Jennifer Kim',
-          specialty: 'Fitness Coach & Nutritionist',
-          experience: '6 years',
-          rating: 4.8,
-          photo: '/api/placeholder/150/150',
-          services: ['Functional Training', 'Core Strength', 'Cardio Training', 'Nutrition Coaching'],
-          availability: {
-            monday: ['7:00 AM', '9:00 AM', '1:00 PM', '4:00 PM'],
-            tuesday: ['6:30 AM', '8:30 AM', '2:00 PM', '5:00 PM'],
-            wednesday: ['7:00 AM', '10:00 AM', '3:00 PM'],
-            thursday: ['6:30 AM', '9:00 AM', '1:30 PM', '4:30 PM'],
-            friday: ['7:00 AM', '11:00 AM', '3:00 PM'],
-            saturday: ['8:00 AM', '10:00 AM', '2:00 PM'],
-            sunday: ['Closed']
-          }
-        }
+      name: 'Personal Training',
+      icon: Dumbbell,
+      description: 'One-on-one fitness coaching and strength training',
+      color: 'from-green-500 to-emerald-600',
+      services: [
+        { id: 'strength-training', name: 'Strength Training', duration: '60 min', price: '$80' },
+        { id: 'hiit-training', name: 'HIIT Training', duration: '45 min', price: '$70' },
+        { id: 'fitness-assessment', name: 'Fitness Assessment', duration: '90 min', price: '$100' },
+        { id: 'functional-training', name: 'Functional Training', duration: '60 min', price: '$75' }
       ]
     },
     {
       id: 'yoga-pilates',
       name: 'Yoga & Pilates',
-      description: 'Group classes, private sessions, and specialized workshops',
-      icon: '🧘',
-      personnel: [
-        {
-          id: 3,
-          name: 'Sophia Martinez',
-          specialty: 'Certified Yoga Instructor',
-          experience: '10 years',
-          rating: 5.0,
-          photo: '/api/placeholder/150/150',
-          services: ['Hatha Yoga', 'Vinyasa Flow', 'Prenatal Yoga', 'Meditation'],
-          availability: {
-            monday: ['8:00 AM', '10:00 AM', '6:00 PM'],
-            tuesday: ['7:00 AM', '9:00 AM', '5:30 PM'],
-            wednesday: ['8:00 AM', '11:00 AM', '6:30 PM'],
-            thursday: ['7:30 AM', '10:30 AM', '6:00 PM'],
-            friday: ['8:00 AM', '10:00 AM', '5:00 PM'],
-            saturday: ['9:00 AM', '11:00 AM', '2:00 PM'],
-            sunday: ['10:00 AM', '4:00 PM', '6:00 PM']
-          }
-        }
+      icon: Heart,
+      description: 'Mind-body wellness and flexibility training',
+      color: 'from-purple-500 to-pink-600',
+      services: [
+        { id: 'hatha-yoga', name: 'Hatha Yoga', duration: '75 min', price: '$50' },
+        { id: 'vinyasa-flow', name: 'Vinyasa Flow', duration: '60 min', price: '$45' },
+        { id: 'pilates-mat', name: 'Pilates Mat Class', duration: '60 min', price: '$40' },
+        { id: 'restorative-yoga', name: 'Restorative Yoga', duration: '90 min', price: '$55' }
       ]
     },
     {
       id: 'physical-therapy',
       name: 'Physical Therapy',
-      description: 'Rehabilitation, injury recovery, and mobility improvement',
-      icon: '🏥',
-      personnel: [
-        {
-          id: 4,
-          name: 'Dr. Robert Chen',
-          specialty: 'Licensed Physical Therapist',
-          experience: '12 years',
-          rating: 4.9,
-          photo: '/api/placeholder/150/150',
-          services: ['Injury Rehabilitation', 'Sports Recovery', 'Mobility Training', 'Pain Management'],
-          availability: {
-            monday: ['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'],
-            tuesday: ['8:30 AM', '10:30 AM', '1:30 PM', '3:30 PM'],
-            wednesday: ['9:00 AM', '11:30 AM', '2:30 PM'],
-            thursday: ['8:00 AM', '10:00 AM', '1:00 PM', '4:00 PM'],
-            friday: ['9:00 AM', '12:00 PM', '3:00 PM'],
-            saturday: ['10:00 AM', '12:00 PM'],
-            sunday: ['Closed']
-          }
-        }
+      icon: Target,
+      description: 'Rehabilitation and injury prevention services',
+      color: 'from-blue-500 to-cyan-600',
+      services: [
+        { id: 'injury-rehab', name: 'Injury Rehabilitation', duration: '60 min', price: '$95' },
+        { id: 'sports-massage', name: 'Sports Massage', duration: '90 min', price: '$120' },
+        { id: 'movement-assessment', name: 'Movement Assessment', duration: '75 min', price: '$110' },
+        { id: 'recovery-therapy', name: 'Recovery Therapy', duration: '60 min', price: '$85' }
       ]
     },
     {
       id: 'sports-coaching',
       name: 'Sports Coaching',
-      description: 'Tennis, swimming, martial arts, and specialized sports training',
-      icon: '🎾',
-      personnel: [
-        {
-          id: 5,
-          name: 'Coach David Wilson',
-          specialty: 'Professional Tennis Coach',
-          experience: '15 years',
-          rating: 4.8,
-          photo: '/api/placeholder/150/150',
-          services: ['Tennis Lessons', 'Match Strategy', 'Tournament Prep', 'Junior Coaching'],
-          availability: {
-            monday: ['4:00 PM', '5:00 PM', '6:00 PM'],
-            tuesday: ['3:30 PM', '4:30 PM', '5:30 PM'],
-            wednesday: ['4:00 PM', '5:00 PM', '6:00 PM'],
-            thursday: ['3:30 PM', '5:00 PM', '6:30 PM'],
-            friday: ['4:00 PM', '5:00 PM'],
-            saturday: ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM'],
-            sunday: ['10:00 AM', '11:00 AM', '3:00 PM']
-          }
-        }
-      ]
-    },
-    {
-      id: 'nutrition',
-      name: 'Nutrition & Wellness',
-      description: 'Meal planning, dietary consultations, and wellness coaching',
-      icon: '🥗',
-      personnel: [
-        {
-          id: 6,
-          name: 'Dr. Lisa Rodriguez',
-          specialty: 'Sports Nutritionist',
-          experience: '9 years',
-          rating: 4.9,
-          photo: '/api/placeholder/150/150',
-          services: ['Meal Planning', 'Sports Nutrition', 'Weight Management', 'Supplement Advice'],
-          availability: {
-            monday: ['10:00 AM', '1:00 PM', '3:00 PM'],
-            tuesday: ['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'],
-            wednesday: ['10:00 AM', '12:00 PM', '3:00 PM'],
-            thursday: ['9:00 AM', '1:00 PM', '4:00 PM'],
-            friday: ['10:00 AM', '2:00 PM'],
-            saturday: ['11:00 AM', '1:00 PM'],
-            sunday: ['Closed']
-          }
-        }
+      icon: Users,
+      description: 'Specialized coaching for various sports and activities',
+      color: 'from-orange-500 to-red-600',
+      services: [
+        { id: 'tennis-coaching', name: 'Tennis Coaching', duration: '60 min', price: '$65' },
+        { id: 'swimming-lessons', name: 'Swimming Lessons', duration: '45 min', price: '$55' },
+        { id: 'basketball-training', name: 'Basketball Training', duration: '90 min', price: '$75' },
+        { id: 'martial-arts', name: 'Martial Arts Training', duration: '60 min', price: '$60' }
       ]
     }
   ]
 
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const personnel = {
+    'personal-training': [
+      {
+        id: 'alex-johnson',
+        name: 'Alex Johnson',
+        title: 'Certified Personal Trainer',
+        rating: 4.9,
+        reviews: 387,
+        specialties: ['Strength Training', 'HIIT', 'Weight Loss'],
+        image: '/api/placeholder/200/200',
+        experience: '8 years',
+        languages: ['English']
+      },
+      {
+        id: 'maria-garcia',
+        name: 'Maria Garcia',
+        title: 'Fitness Specialist',
+        rating: 4.8,
+        reviews: 294,
+        specialties: ['Functional Training', 'Nutrition', 'Body Transformation'],
+        image: '/api/placeholder/200/200',
+        experience: '6 years',
+        languages: ['English', 'Spanish']
+      }
+    ],
+    'yoga-pilates': [
+      {
+        id: 'sarah-williams',
+        name: 'Sarah Williams',
+        title: 'Certified Yoga Instructor',
+        rating: 4.9,
+        reviews: 456,
+        specialties: ['Vinyasa', 'Meditation', 'Prenatal Yoga'],
+        image: '/api/placeholder/200/200',
+        experience: '12 years',
+        languages: ['English']
+      },
+      {
+        id: 'james-chen',
+        name: 'James Chen',
+        title: 'Pilates & Movement Specialist',
+        rating: 4.7,
+        reviews: 234,
+        specialties: ['Pilates', 'Core Strength', 'Injury Prevention'],
+        image: '/api/placeholder/200/200',
+        experience: '9 years',
+        languages: ['English', 'Mandarin']
+      }
+    ],
+    'physical-therapy': [
+      {
+        id: 'dr-emily-brown',
+        name: 'Dr. Emily Brown',
+        title: 'Licensed Physical Therapist',
+        rating: 5.0,
+        reviews: 178,
+        specialties: ['Sports Injuries', 'Post-Surgery Rehab', 'Pain Management'],
+        image: '/api/placeholder/200/200',
+        experience: '15 years',
+        languages: ['English']
+      },
+      {
+        id: 'mike-rodriguez',
+        name: 'Mike Rodriguez',
+        title: 'Sports Therapist',
+        rating: 4.8,
+        reviews: 312,
+        specialties: ['Athletic Recovery', 'Mobility', 'Strength & Conditioning'],
+        image: '/api/placeholder/200/200',
+        experience: '10 years',
+        languages: ['English', 'Portuguese']
+      }
+    ],
+    'sports-coaching': [
+      {
+        id: 'coach-david-kim',
+        name: 'Coach David Kim',
+        title: 'Professional Sports Coach',
+        rating: 4.9,
+        reviews: 445,
+        specialties: ['Tennis', 'Fitness Coaching', 'Youth Development'],
+        image: '/api/placeholder/200/200',
+        experience: '18 years',
+        languages: ['English', 'Korean']
+      },
+      {
+        id: 'lisa-taylor',
+        name: 'Lisa Taylor',
+        title: 'Swimming & Water Sports Instructor',
+        rating: 4.8,
+        reviews: 267,
+        specialties: ['Swimming Technique', 'Water Safety', 'Competitive Training'],
+        image: '/api/placeholder/200/200',
+        experience: '11 years',
+        languages: ['English']
+      }
+    ]
+  }
+
+  const timeSlots = {
+    Monday: ['6:00 AM', '7:00 AM', '8:00 AM', '5:00 PM', '6:00 PM', '7:00 PM'],
+    Tuesday: ['6:00 AM', '7:30 AM', '12:00 PM', '5:30 PM', '6:30 PM', '7:30 PM'],
+    Wednesday: ['6:30 AM', '8:00 AM', '12:30 PM', '5:00 PM', '6:00 PM', '7:00 PM'],
+    Thursday: ['6:00 AM', '7:00 AM', '1:00 PM', '5:30 PM', '6:30 PM', '7:30 PM'],
+    Friday: ['6:00 AM', '7:30 AM', '12:00 PM', '5:00 PM', '6:00 PM'],
+    Saturday: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM'],
+    Sunday: ['8:00 AM', '9:30 AM', '11:00 AM', '2:30 PM', '4:00 PM']
+  }
+
+  const handleBooking = () => {
+    const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
+    const selectedServiceData = selectedCategoryData?.services.find(service => service.id === selectedService)
+    const selectedPersonnelData = personnel[selectedCategory]?.find(person => person.id === selectedPersonnel)
+    
+    const bookingData = {
+      category: selectedCategoryData?.name,
+      service: selectedServiceData?.name,
+      personnel: selectedPersonnelData?.name,
+      day: selectedDay,
+      time: selectedTime,
+      duration: selectedServiceData?.duration,
+      price: selectedServiceData?.price
+    }
+    
+    const params = new URLSearchParams(bookingData)
+    window.location.href = `/booking/confirm?${params.toString()}`
+  }
 
   return (
     <MainLayout>
-      {/* Header Section */}
-      <section className="bg-gradient-to-r from-blue-50 via-green-50 to-blue-50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50 py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-blue-600/10"></div>
+        <div className="absolute top-20 left-20 w-32 h-32 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/2 w-32 h-32 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl lg:text-5xl font-bold text-secondary-900 mb-4 animate-slide-in-down flex items-center justify-center gap-3">
-              <Dumbbell className="h-12 w-12 text-blue-600" />
-              Sports & Fitness Services
+            <Dumbbell className="w-20 h-20 mx-auto mb-6 text-green-600 animate-pulse" />
+            <h1 className="text-4xl md:text-6xl font-bold text-secondary-900 mb-6">
+              Sports & Fitness
+              <span className="block bg-gradient-to-r from-green-600 via-blue-600 to-emerald-600 bg-clip-text text-transparent">
+                Training
+              </span>
             </h1>
-            <p className="text-xl text-secondary-600 max-w-3xl mx-auto animate-slide-in-up">
-              Achieve your fitness goals with certified trainers, coaches, and wellness experts. 
-              From personal training to nutrition coaching, we've got you covered.
+            <p className="text-xl text-secondary-600 mb-8 max-w-3xl mx-auto">
+              Connect with certified personal trainers, yoga instructors, physical therapists, 
+              and sports coaches to achieve your fitness and wellness goals.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Services Grid */}
+      {/* Category Selection */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Services List */}
-            <div className="lg:col-span-1">
-              <h2 className="text-2xl font-bold text-secondary-900 mb-6 flex items-center">
-                <Target className="h-6 w-6 mr-2 text-blue-600" />
-                Select a Service
-              </h2>
-              <div className="space-y-4">
-                {services.map((service, index) => (
-                  <Card
-                    key={service.id}
-                    className={`cursor-pointer transition-all duration-300 hover:shadow-lg border-2 animate-scale-in ${
-                      selectedService?.id === service.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-secondary-200 hover:border-blue-300'
-                    }`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                    onClick={() => setSelectedService(service)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="text-3xl">{service.icon}</div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-secondary-900 mb-1">
-                            {service.name}
-                          </h3>
-                          <p className="text-sm text-secondary-600 mb-2">
-                            {service.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-blue-600">
-                              {service.personnel.length} Expert{service.personnel.length > 1 ? 's' : ''} Available
-                            </span>
-                            <ChevronRight className="h-4 w-4 text-secondary-400" />
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Personnel & Booking */}
-            <div className="lg:col-span-2">
-              {selectedService ? (
-                <div className="animate-slide-in-right">
-                  <h2 className="text-2xl font-bold text-secondary-900 mb-6 flex items-center">
-                    <Heart className="h-6 w-6 mr-2 text-red-500" />
-                    Available Trainers - {selectedService.name}
-                  </h2>
-                  
-                  {selectedService.personnel.map((person) => (
-                    <Card key={person.id} className="mb-8 border border-secondary-200 hover:shadow-lg transition-all duration-300">
-                      <CardContent className="p-6">
-                        {/* Personnel Info */}
-                        <div className="flex flex-col md:flex-row gap-6 mb-6">
-                          <div className="flex-shrink-0">
-                            <img
-                              src={person.photo}
-                              alt={person.name}
-                              className="w-32 h-32 rounded-xl object-cover border-4 border-blue-100"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h3 className="text-xl font-bold text-secondary-900">{person.name}</h3>
-                                <p className="text-blue-600 font-medium">{person.specialty}</p>
-                                <p className="text-secondary-600">{person.experience} experience</p>
-                              </div>
-                              <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
-                                <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                                <span className="font-semibold text-yellow-700">{person.rating}</span>
-                              </div>
-                            </div>
-                            
-                            {/* Services */}
-                            <div className="mb-4">
-                              <h4 className="font-semibold text-secondary-900 mb-2">Specializes in:</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {person.services.map((service, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                                  >
-                                    {service}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Weekly Availability */}
-                        <div>
-                          <h4 className="font-semibold text-secondary-900 mb-4 flex items-center">
-                            <Calendar className="h-5 w-5 mr-2 text-blue-600" />
-                            Weekly Availability
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-                            {days.map((day, dayIndex) => (
-                              <div key={day} className="border border-secondary-200 rounded-lg p-3">
-                                <h5 className="font-medium text-secondary-900 mb-2 text-center">
-                                  {dayNames[dayIndex]}
-                                </h5>
-                                <div className="space-y-2">
-                                  {person.availability[day][0] === 'Closed' ? (
-                                    <div className="text-center py-2">
-                                      <span className="text-secondary-400 text-sm">Closed</span>
-                                    </div>
-                                  ) : (
-                                    person.availability[day].map((time, timeIndex) => (
-                                      <Button
-                                        key={timeIndex}
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full text-xs hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
-                                        asChild
-                                      >
-                                        <Link href={`/booking/confirm?service=${selectedService.id}&personnel=${person.id}&time=${time}&day=${day}&category=sports-fitness`}>
-                                          <Clock className="h-3 w-3 mr-1" />
-                                          {time}
-                                        </Link>
-                                      </Button>
-                                    ))
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          <div className="mt-4 text-center">
-                            <Button 
-                              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white px-8 py-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                              asChild
-                            >
-                              <Link href={`/booking/schedule?service=${selectedService.id}&personnel=${person.id}&category=sports-fitness`}>
-                                Book Session with {person.name}
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <div className="text-6xl mb-4">💪</div>
-                  <h3 className="text-xl font-semibold text-secondary-900 mb-2">Select a Fitness Service</h3>
-                  <p className="text-secondary-600">
-                    Choose from our sports and fitness services to view available trainers and coaches.
+          <h2 className="text-3xl font-bold text-center text-secondary-900 mb-12">
+            Choose Your Training Category
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories.map((category) => {
+              const IconComponent = category.icon
+              const isSelected = selectedCategory === category.id
+              
+              return (
+                <div
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`group cursor-pointer p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-strong hover:-translate-y-1 ${
+                    isSelected 
+                      ? 'border-green-500 bg-gradient-to-br from-green-50 to-blue-50 shadow-strong' 
+                      : 'border-secondary-200 bg-white hover:border-green-300'
+                  }`}
+                >
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-r ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-center text-secondary-900 mb-2">
+                    {category.name}
+                  </h3>
+                  <p className="text-sm text-secondary-600 text-center">
+                    {category.description}
                   </p>
                 </div>
-              )}
-            </div>
+              )
+            })}
           </div>
         </div>
       </section>
+
+      {/* Service Selection */}
+      {selectedCategory && (
+        <section className="py-16 bg-gradient-to-br from-secondary-50 to-green-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Select Your Service
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {categories.find(cat => cat.id === selectedCategory)?.services.map((service) => (
+                <div
+                  key={service.id}
+                  onClick={() => setSelectedService(service.id)}
+                  className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
+                    selectedService === service.id
+                      ? 'border-green-500 bg-white shadow-lg'
+                      : 'border-secondary-200 bg-white hover:border-green-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="text-lg font-semibold text-secondary-900">{service.name}</h4>
+                    <span className="text-green-600 font-bold">{service.price}</span>
+                  </div>
+                  <div className="flex items-center text-secondary-600">
+                    <Clock className="w-4 h-4 mr-1" />
+                    <span className="text-sm">{service.duration}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Personnel Selection */}
+      {selectedService && (
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Choose Your Trainer
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {personnel[selectedCategory]?.map((person) => (
+                <div
+                  key={person.id}
+                  onClick={() => setSelectedPersonnel(person.id)}
+                  className={`cursor-pointer p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-strong hover:-translate-y-1 ${
+                    selectedPersonnel === person.id
+                      ? 'border-green-500 bg-gradient-to-br from-green-50 to-blue-50 shadow-strong'
+                      : 'border-secondary-200 bg-white hover:border-green-300'
+                  }`}
+                >
+                  <div className="flex items-start space-x-4">
+                    <img
+                      src={person.image}
+                      alt={person.name}
+                      className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
+                    />
+                    <div className="flex-1">
+                      <h4 className="text-xl font-bold text-secondary-900">{person.name}</h4>
+                      <p className="text-green-600 font-medium mb-2">{person.title}</p>
+                      
+                      <div className="flex items-center mb-2">
+                        <div className="flex items-center mr-4">
+                          <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                          <span className="ml-1 font-semibold text-secondary-900">{person.rating}</span>
+                          <span className="ml-1 text-secondary-500">({person.reviews} reviews)</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-secondary-600 mb-3">
+                        <Award className="w-4 h-4 mr-1" />
+                        <span>{person.experience} experience</span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {person.specialties.map((specialty, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full border border-green-200"
+                          >
+                            {specialty}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Time Selection */}
+      {selectedPersonnel && (
+        <section className="py-16 bg-gradient-to-br from-secondary-50 to-green-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Select Day & Time
+            </h3>
+            
+            <div className="bg-white rounded-2xl shadow-soft p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+                {Object.entries(timeSlots).map(([day, slots]) => (
+                  <div key={day} className="text-center">
+                    <h4 className="font-semibold text-secondary-900 mb-4 pb-2 border-b border-secondary-200">
+                      {day}
+                    </h4>
+                    <div className="space-y-2">
+                      {slots.map((time) => (
+                        <button
+                          key={`${day}-${time}`}
+                          onClick={() => {
+                            setSelectedDay(day)
+                            setSelectedTime(time)
+                          }}
+                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            selectedDay === day && selectedTime === time
+                              ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-md'
+                              : 'bg-secondary-50 text-secondary-700 hover:bg-green-100 hover:text-green-700'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Book Now Button */}
+      {selectedTime && (
+        <section className="py-16 bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl p-8 border border-green-200">
+              <h3 className="text-2xl font-bold text-secondary-900 mb-4">
+                Ready to Book Your Training Session?
+              </h3>
+              <p className="text-secondary-600 mb-6">
+                You&apos;ve selected a session on {selectedDay} at {selectedTime}
+              </p>
+              <Button 
+                onClick={handleBooking}
+                size="lg" 
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                Book Now
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
     </MainLayout>
   )
 }

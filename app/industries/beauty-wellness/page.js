@@ -1,348 +1,427 @@
 'use client'
 
-import Link from 'next/link'
 import { useState } from 'react'
-import { Button, Card, CardContent } from '@/components/ui'
-import { MainLayout } from '@/components/layout'
-import { Calendar, Clock, Star, MapPin, Phone, Mail, ChevronRight } from 'lucide-react'
+import { MainLayout } from '@/components/layout/MainLayout'
+import { Button } from '@/components/ui'
+import Link from 'next/link'
+import { 
+  Scissors, Sparkles, Heart, Palette, Users, Star, Clock, 
+  Calendar, MapPin, Phone, Mail, ChevronRight, Award
+} from 'lucide-react'
 
-/**
- * Beauty & Wellness Services Page
- * Displays services and personnel for beauty and wellness appointments
- */
 export default function BeautyWellnessPage() {
+  const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedService, setSelectedService] = useState(null)
+  const [selectedPersonnel, setSelectedPersonnel] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [selectedTime, setSelectedTime] = useState(null)
 
-  const services = [
+  const categories = [
     {
-      id: 'hair-salon',
-      name: 'Hair Salons & Barbershops',
-      description: 'Professional haircuts, coloring, styling, and treatments',
-      icon: '✂️',
-      personnel: [
-        {
-          id: 1,
-          name: 'Sarah Johnson',
-          specialty: 'Hair Colorist & Stylist',
-          experience: '8 years',
-          rating: 4.9,
-          photo: '/api/placeholder/150/150',
-          services: ['Hair Coloring', 'Highlights', 'Balayage', 'Haircuts'],
-          availability: {
-            monday: ['9:00 AM', '10:30 AM', '2:00 PM', '3:30 PM'],
-            tuesday: ['9:00 AM', '11:00 AM', '1:00 PM', '4:00 PM'],
-            wednesday: ['10:00 AM', '11:30 AM', '2:30 PM'],
-            thursday: ['9:00 AM', '10:00 AM', '2:00 PM', '4:30 PM'],
-            friday: ['9:30 AM', '1:00 PM', '3:00 PM'],
-            saturday: ['10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM'],
-            sunday: ['Closed']
-          }
-        },
-        {
-          id: 2,
-          name: 'Michael Rodriguez',
-          specialty: 'Master Barber',
-          experience: '12 years',
-          rating: 4.8,
-          photo: '/api/placeholder/150/150',
-          services: ['Classic Cuts', 'Beard Trimming', 'Hot Towel Shaves', 'Hair Washing'],
-          availability: {
-            monday: ['8:00 AM', '9:30 AM', '11:00 AM', '2:00 PM', '4:00 PM'],
-            tuesday: ['8:00 AM', '10:00 AM', '1:30 PM', '3:30 PM'],
-            wednesday: ['9:00 AM', '10:30 AM', '2:00 PM', '4:30 PM'],
-            thursday: ['8:00 AM', '11:00 AM', '1:00 PM', '3:00 PM'],
-            friday: ['8:30 AM', '10:00 AM', '2:30 PM'],
-            saturday: ['9:00 AM', '10:30 AM', '1:00 PM', '2:30 PM'],
-            sunday: ['Closed']
-          }
-        }
+      id: 'hair-services',
+      name: 'Hair Salons',
+      icon: Scissors,
+      description: 'Professional haircuts, coloring, and styling services',
+      color: 'from-pink-500 to-rose-600',
+      services: [
+        { id: 'haircut-styling', name: 'Haircut & Styling', duration: '60 min', price: '$65' },
+        { id: 'hair-coloring', name: 'Hair Coloring', duration: '120 min', price: '$120' },
+        { id: 'highlights', name: 'Highlights & Balayage', duration: '150 min', price: '$180' },
+        { id: 'hair-treatment', name: 'Hair Treatment', duration: '45 min', price: '$55' }
       ]
     },
     {
-      id: 'nail-salon',
-      name: 'Nail Salons',
-      description: 'Manicures, pedicures, nail art, and acrylic/gel applications',
-      icon: '💅',
-      personnel: [
-        {
-          id: 3,
-          name: 'Emma Chen',
-          specialty: 'Nail Artist & Technician',
-          experience: '6 years',
-          rating: 4.9,
-          photo: '/api/placeholder/150/150',
-          services: ['Manicure', 'Pedicure', 'Gel Nails', 'Nail Art'],
-          availability: {
-            monday: ['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'],
-            tuesday: ['10:00 AM', '1:00 PM', '3:00 PM', '5:00 PM'],
-            wednesday: ['9:30 AM', '11:30 AM', '2:30 PM'],
-            thursday: ['9:00 AM', '12:00 PM', '3:00 PM', '4:30 PM'],
-            friday: ['10:00 AM', '1:30 PM', '3:30 PM'],
-            saturday: ['9:00 AM', '11:00 AM', '1:00 PM', '3:00 PM'],
-            sunday: ['11:00 AM', '2:00 PM', '4:00 PM']
-          }
-        }
+      id: 'nail-services',
+      name: 'Nail Studios',
+      icon: Sparkles,
+      description: 'Manicures, pedicures, and nail art services',
+      color: 'from-purple-500 to-pink-600',
+      services: [
+        { id: 'manicure', name: 'Classic Manicure', duration: '45 min', price: '$35' },
+        { id: 'pedicure', name: 'Deluxe Pedicure', duration: '60 min', price: '$50' },
+        { id: 'gel-nails', name: 'Gel Nails', duration: '90 min', price: '$65' },
+        { id: 'nail-art', name: 'Nail Art Design', duration: '75 min', price: '$45' }
       ]
     },
     {
-      id: 'spa-massage',
-      name: 'Spas & Massage Therapy',
-      description: 'Swedish, deep tissue, hot stone, and aromatherapy massages',
-      icon: '💆',
-      personnel: [
-        {
-          id: 4,
-          name: 'Dr. Lisa Williams',
-          specialty: 'Licensed Massage Therapist',
-          experience: '10 years',
-          rating: 5.0,
-          photo: '/api/placeholder/150/150',
-          services: ['Swedish Massage', 'Deep Tissue', 'Hot Stone', 'Aromatherapy'],
-          availability: {
-            monday: ['10:00 AM', '1:00 PM', '3:00 PM'],
-            tuesday: ['9:00 AM', '11:30 AM', '2:30 PM', '4:30 PM'],
-            wednesday: ['10:00 AM', '1:30 PM', '3:30 PM'],
-            thursday: ['9:00 AM', '12:00 PM', '3:00 PM'],
-            friday: ['10:30 AM', '2:00 PM', '4:00 PM'],
-            saturday: ['10:00 AM', '1:00 PM', '3:00 PM'],
-            sunday: ['Closed']
-          }
-        }
+      id: 'spa-services',
+      name: 'Spa & Massage',
+      icon: Heart,
+      description: 'Relaxing massages and spa treatments',
+      color: 'from-green-500 to-teal-600',
+      services: [
+        { id: 'swedish-massage', name: 'Swedish Massage', duration: '60 min', price: '$80' },
+        { id: 'deep-tissue', name: 'Deep Tissue Massage', duration: '90 min', price: '$110' },
+        { id: 'facial-treatment', name: 'Facial Treatment', duration: '75 min', price: '$95' },
+        { id: 'hot-stone', name: 'Hot Stone Therapy', duration: '90 min', price: '$125' }
       ]
     },
     {
-      id: 'skincare',
-      name: 'Estheticians & Skincare',
-      description: 'Facials, chemical peels, microdermabrasion, and waxing services',
-      icon: '🧴',
-      personnel: [
-        {
-          id: 5,
-          name: 'Rachel Thompson',
-          specialty: 'Licensed Esthetician',
-          experience: '7 years',
-          rating: 4.8,
-          photo: '/api/placeholder/150/150',
-          services: ['Facials', 'Chemical Peels', 'Microdermabrasion', 'Waxing'],
-          availability: {
-            monday: ['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'],
-            tuesday: ['10:00 AM', '1:00 PM', '3:30 PM'],
-            wednesday: ['9:30 AM', '12:00 PM', '2:30 PM', '4:30 PM'],
-            thursday: ['9:00 AM', '11:30 AM', '3:00 PM'],
-            friday: ['10:00 AM', '1:00 PM', '3:00 PM'],
-            saturday: ['9:00 AM', '11:00 AM', '2:00 PM'],
-            sunday: ['Closed']
-          }
-        }
-      ]
-    },
-    {
-      id: 'makeup',
-      name: 'Makeup Artists',
-      description: 'Bridal makeup, event makeup, and professional lessons',
-      icon: '💄',
-      personnel: [
-        {
-          id: 6,
-          name: 'Victoria Adams',
-          specialty: 'Professional Makeup Artist',
-          experience: '9 years',
-          rating: 4.9,
-          photo: '/api/placeholder/150/150',
-          services: ['Bridal Makeup', 'Event Makeup', 'Makeup Lessons', 'Special Effects'],
-          availability: {
-            monday: ['10:00 AM', '2:00 PM', '4:00 PM'],
-            tuesday: ['9:00 AM', '12:00 PM', '3:00 PM'],
-            wednesday: ['10:30 AM', '1:30 PM', '4:30 PM'],
-            thursday: ['9:00 AM', '11:00 AM', '2:30 PM'],
-            friday: ['10:00 AM', '1:00 PM', '3:30 PM'],
-            saturday: ['9:00 AM', '11:30 AM', '2:00 PM', '4:00 PM'],
-            sunday: ['11:00 AM', '2:00 PM']
-          }
-        }
+      id: 'skincare-services',
+      name: 'Skincare Clinics',
+      icon: Palette,
+      description: 'Professional skincare and beauty treatments',
+      color: 'from-blue-500 to-cyan-600',
+      services: [
+        { id: 'facial-cleansing', name: 'Deep Cleansing Facial', duration: '60 min', price: '$75' },
+        { id: 'anti-aging', name: 'Anti-Aging Treatment', duration: '90 min', price: '$135' },
+        { id: 'acne-treatment', name: 'Acne Treatment', duration: '45 min', price: '$65' },
+        { id: 'skin-consultation', name: 'Skin Consultation', duration: '30 min', price: '$40' }
       ]
     }
   ]
 
-  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const personnel = {
+    'hair-services': [
+      {
+        id: 'sarah-johnson',
+        name: 'Sarah Johnson',
+        title: 'Master Hair Stylist',
+        rating: 4.9,
+        reviews: 324,
+        specialties: ['Hair Coloring', 'Balayage', 'Wedding Styles'],
+        image: '/api/placeholder/200/200',
+        experience: '12 years',
+        languages: ['English', 'Spanish']
+      },
+      {
+        id: 'michael-rodriguez',
+        name: 'Michael Rodriguez',
+        title: 'Senior Colorist',
+        rating: 4.8,
+        reviews: 289,
+        specialties: ['Color Correction', 'Highlights', 'Men\'s Cuts'],
+        image: '/api/placeholder/200/200',
+        experience: '10 years',
+        languages: ['English']
+      }
+    ],
+    'nail-services': [
+      {
+        id: 'lisa-chen',
+        name: 'Lisa Chen',
+        title: 'Nail Artist & Technician',
+        rating: 4.9,
+        reviews: 412,
+        specialties: ['Gel Extensions', 'Nail Art', 'French Manicure'],
+        image: '/api/placeholder/200/200',
+        experience: '8 years',
+        languages: ['English', 'Mandarin']
+      },
+      {
+        id: 'maria-santos',
+        name: 'Maria Santos',
+        title: 'Senior Nail Technician',
+        rating: 4.7,
+        reviews: 356,
+        specialties: ['Pedicures', 'Nail Health', 'Cuticle Care'],
+        image: '/api/placeholder/200/200',
+        experience: '15 years',
+        languages: ['English', 'Portuguese']
+      }
+    ],
+    'spa-services': [
+      {
+        id: 'anna-williams',
+        name: 'Anna Williams',
+        title: 'Licensed Massage Therapist',
+        rating: 4.8,
+        reviews: 278,
+        specialties: ['Deep Tissue', 'Swedish', 'Sports Massage'],
+        image: '/api/placeholder/200/200',
+        experience: '9 years',
+        languages: ['English']
+      },
+      {
+        id: 'david-kim',
+        name: 'David Kim',
+        title: 'Spa Wellness Specialist',
+        rating: 4.9,
+        reviews: 195,
+        specialties: ['Hot Stone', 'Aromatherapy', 'Reflexology'],
+        image: '/api/placeholder/200/200',
+        experience: '11 years',
+        languages: ['English', 'Korean']
+      }
+    ],
+    'skincare-services': [
+      {
+        id: 'dr-jessica-lee',
+        name: 'Dr. Jessica Lee',
+        title: 'Dermatology Aesthetician',
+        rating: 4.9,
+        reviews: 445,
+        specialties: ['Anti-Aging', 'Acne Treatment', 'Chemical Peels'],
+        image: '/api/placeholder/200/200',
+        experience: '14 years',
+        languages: ['English', 'French']
+      },
+      {
+        id: 'rachel-brown',
+        name: 'Rachel Brown',
+        title: 'Skincare Specialist',
+        rating: 4.8,
+        reviews: 312,
+        specialties: ['Facial Treatments', 'Skin Analysis', 'Product Consultation'],
+        image: '/api/placeholder/200/200',
+        experience: '7 years',
+        languages: ['English']
+      }
+    ]
+  }
+
+  const timeSlots = {
+    Monday: ['9:00 AM', '10:30 AM', '1:00 PM', '2:30 PM', '4:00 PM'],
+    Tuesday: ['9:00 AM', '11:00 AM', '1:30 PM', '3:00 PM', '4:30 PM'],
+    Wednesday: ['10:00 AM', '11:30 AM', '2:00 PM', '3:30 PM', '5:00 PM'],
+    Thursday: ['9:30 AM', '11:00 AM', '1:00 PM', '2:30 PM', '4:00 PM'],
+    Friday: ['9:00 AM', '10:30 AM', '12:00 PM', '2:00 PM', '3:30 PM'],
+    Saturday: ['10:00 AM', '11:30 AM', '1:00 PM', '2:30 PM'],
+    Sunday: ['11:00 AM', '1:00 PM', '2:30 PM', '4:00 PM']
+  }
+
+  const handleBooking = () => {
+    const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
+    const selectedServiceData = selectedCategoryData?.services.find(service => service.id === selectedService)
+    const selectedPersonnelData = personnel[selectedCategory]?.find(person => person.id === selectedPersonnel)
+    
+    const bookingData = {
+      category: selectedCategoryData?.name,
+      service: selectedServiceData?.name,
+      personnel: selectedPersonnelData?.name,
+      day: selectedDay,
+      time: selectedTime,
+      duration: selectedServiceData?.duration,
+      price: selectedServiceData?.price
+    }
+    
+    const params = new URLSearchParams(bookingData)
+    window.location.href = `/booking/confirm?${params.toString()}`
+  }
 
   return (
     <MainLayout>
-      {/* Header Section */}
-      <section className="bg-gradient-to-r from-pink-50 via-purple-50 to-pink-50 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50 py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-600/10 to-purple-600/10"></div>
+        <div className="absolute top-20 left-20 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/2 w-32 h-32 bg-rose-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl lg:text-5xl font-bold text-secondary-900 mb-4 animate-slide-in-down">
-              Beauty & Wellness Services
+            <Sparkles className="w-20 h-20 mx-auto mb-6 text-pink-600 animate-pulse" />
+            <h1 className="text-4xl md:text-6xl font-bold text-secondary-900 mb-6">
+              Beauty & Wellness
+              <span className="block bg-gradient-to-r from-pink-600 via-purple-600 to-rose-600 bg-clip-text text-transparent">
+                Services
+              </span>
             </h1>
-            <p className="text-xl text-secondary-600 max-w-3xl mx-auto animate-slide-in-up">
-              Professional personal care, grooming, and relaxation services. 
-              Book appointments with certified experts in beauty and wellness.
+            <p className="text-xl text-secondary-600 mb-8 max-w-3xl mx-auto">
+              Book appointments with professional stylists, nail technicians, massage therapists, 
+              and skincare specialists for your beauty and wellness needs.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Services Grid */}
+      {/* Category Selection */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Services List */}
-            <div className="lg:col-span-1">
-              <h2 className="text-2xl font-bold text-secondary-900 mb-6">Select a Service</h2>
-              <div className="space-y-4">
-                {services.map((service, index) => (
-                  <Card
-                    key={service.id}
-                    className={`cursor-pointer transition-all duration-300 hover:shadow-lg border-2 animate-scale-in ${
-                      selectedService?.id === service.id
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-secondary-200 hover:border-primary-300'
-                    }`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                    onClick={() => setSelectedService(service)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start space-x-4">
-                        <div className="text-3xl">{service.icon}</div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-secondary-900 mb-1">
-                            {service.name}
-                          </h3>
-                          <p className="text-sm text-secondary-600 mb-2">
-                            {service.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-primary-600">
-                              {service.personnel.length} Professional{service.personnel.length > 1 ? 's' : ''} Available
-                            </span>
-                            <ChevronRight className="h-4 w-4 text-secondary-400" />
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            {/* Personnel & Booking */}
-            <div className="lg:col-span-2">
-              {selectedService ? (
-                <div className="animate-slide-in-right">
-                  <h2 className="text-2xl font-bold text-secondary-900 mb-6">
-                    Available Professionals - {selectedService.name}
-                  </h2>
-                  
-                  {selectedService.personnel.map((person) => (
-                    <Card key={person.id} className="mb-8 border border-secondary-200 hover:shadow-lg transition-all duration-300">
-                      <CardContent className="p-6">
-                        {/* Personnel Info */}
-                        <div className="flex flex-col md:flex-row gap-6 mb-6">
-                          <div className="flex-shrink-0">
-                            <img
-                              src={person.photo}
-                              alt={person.name}
-                              className="w-32 h-32 rounded-xl object-cover border-4 border-primary-100"
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <h3 className="text-xl font-bold text-secondary-900">{person.name}</h3>
-                                <p className="text-primary-600 font-medium">{person.specialty}</p>
-                                <p className="text-secondary-600">{person.experience} experience</p>
-                              </div>
-                              <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
-                                <Star className="h-4 w-4 text-yellow-500 fill-current mr-1" />
-                                <span className="font-semibold text-yellow-700">{person.rating}</span>
-                              </div>
-                            </div>
-                            
-                            {/* Services */}
-                            <div className="mb-4">
-                              <h4 className="font-semibold text-secondary-900 mb-2">Specializes in:</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {person.services.map((service, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm font-medium"
-                                  >
-                                    {service}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Weekly Availability */}
-                        <div>
-                          <h4 className="font-semibold text-secondary-900 mb-4 flex items-center">
-                            <Calendar className="h-5 w-5 mr-2 text-primary-600" />
-                            Weekly Availability
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-                            {days.map((day, dayIndex) => (
-                              <div key={day} className="border border-secondary-200 rounded-lg p-3">
-                                <h5 className="font-medium text-secondary-900 mb-2 text-center">
-                                  {dayNames[dayIndex]}
-                                </h5>
-                                <div className="space-y-2">
-                                  {person.availability[day][0] === 'Closed' ? (
-                                    <div className="text-center py-2">
-                                      <span className="text-secondary-400 text-sm">Closed</span>
-                                    </div>
-                                  ) : (
-                                    person.availability[day].map((time, timeIndex) => (
-                                      <Button
-                                        key={timeIndex}
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full text-xs hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 transition-all duration-200"
-                                        asChild
-                                      >
-                                        <Link href={`/booking/confirm?service=${selectedService.id}&personnel=${person.id}&time=${time}&day=${day}`}>
-                                          <Clock className="h-3 w-3 mr-1" />
-                                          {time}
-                                        </Link>
-                                      </Button>
-                                    ))
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          
-                          <div className="mt-4 text-center">
-                            <Button 
-                              className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white px-8 py-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                              asChild
-                            >
-                              <Link href={`/booking/schedule?service=${selectedService.id}&personnel=${person.id}`}>
-                                Book Appointment with {person.name}
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <div className="text-6xl mb-4">💫</div>
-                  <h3 className="text-xl font-semibold text-secondary-900 mb-2">Select a Service Category</h3>
-                  <p className="text-secondary-600">
-                    Choose from our beauty and wellness services to view available professionals and book your appointment.
+          <h2 className="text-3xl font-bold text-center text-secondary-900 mb-12">
+            Choose Your Service Category
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {categories.map((category) => {
+              const IconComponent = category.icon
+              const isSelected = selectedCategory === category.id
+              
+              return (
+                <div
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`group cursor-pointer p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-strong hover:-translate-y-1 ${
+                    isSelected 
+                      ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-purple-50 shadow-strong' 
+                      : 'border-secondary-200 bg-white hover:border-pink-300'
+                  }`}
+                >
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-r ${category.color} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-center text-secondary-900 mb-2">
+                    {category.name}
+                  </h3>
+                  <p className="text-sm text-secondary-600 text-center">
+                    {category.description}
                   </p>
                 </div>
-              )}
-            </div>
+              )
+            })}
           </div>
         </div>
       </section>
+
+      {/* Service Selection */}
+      {selectedCategory && (
+        <section className="py-16 bg-gradient-to-br from-secondary-50 to-pink-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Select Your Service
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {categories.find(cat => cat.id === selectedCategory)?.services.map((service) => (
+                <div
+                  key={service.id}
+                  onClick={() => setSelectedService(service.id)}
+                  className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 hover:shadow-lg ${
+                    selectedService === service.id
+                      ? 'border-pink-500 bg-white shadow-lg'
+                      : 'border-secondary-200 bg-white hover:border-pink-300'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="text-lg font-semibold text-secondary-900">{service.name}</h4>
+                    <span className="text-pink-600 font-bold">{service.price}</span>
+                  </div>
+                  <div className="flex items-center text-secondary-600">
+                    <Clock className="w-4 h-4 mr-1" />
+                    <span className="text-sm">{service.duration}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Personnel Selection */}
+      {selectedService && (
+        <section className="py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Choose Your Specialist
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {personnel[selectedCategory]?.map((person) => (
+                <div
+                  key={person.id}
+                  onClick={() => setSelectedPersonnel(person.id)}
+                  className={`cursor-pointer p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-strong hover:-translate-y-1 ${
+                    selectedPersonnel === person.id
+                      ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-purple-50 shadow-strong'
+                      : 'border-secondary-200 bg-white hover:border-pink-300'
+                  }`}
+                >
+                  <div className="flex items-start space-x-4">
+                    <img
+                      src={person.image}
+                      alt={person.name}
+                      className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-md"
+                    />
+                    <div className="flex-1">
+                      <h4 className="text-xl font-bold text-secondary-900">{person.name}</h4>
+                      <p className="text-pink-600 font-medium mb-2">{person.title}</p>
+                      
+                      <div className="flex items-center mb-2">
+                        <div className="flex items-center mr-4">
+                          <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                          <span className="ml-1 font-semibold text-secondary-900">{person.rating}</span>
+                          <span className="ml-1 text-secondary-500">({person.reviews} reviews)</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-secondary-600 mb-3">
+                        <Award className="w-4 h-4 mr-1" />
+                        <span>{person.experience} experience</span>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        {person.specialties.map((specialty, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-pink-100 text-pink-700 text-xs rounded-full border border-pink-200"
+                          >
+                            {specialty}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Time Selection */}
+      {selectedPersonnel && (
+        <section className="py-16 bg-gradient-to-br from-secondary-50 to-pink-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
+              Select Day & Time
+            </h3>
+            
+            <div className="bg-white rounded-2xl shadow-soft p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+                {Object.entries(timeSlots).map(([day, slots]) => (
+                  <div key={day} className="text-center">
+                    <h4 className="font-semibold text-secondary-900 mb-4 pb-2 border-b border-secondary-200">
+                      {day}
+                    </h4>
+                    <div className="space-y-2">
+                      {slots.map((time) => (
+                        <button
+                          key={`${day}-${time}`}
+                          onClick={() => {
+                            setSelectedDay(day)
+                            setSelectedTime(time)
+                          }}
+                          className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                            selectedDay === day && selectedTime === time
+                              ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md'
+                              : 'bg-secondary-50 text-secondary-700 hover:bg-pink-100 hover:text-pink-700'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Book Now Button */}
+      {selectedTime && (
+        <section className="py-16 bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-2xl p-8 border border-pink-200">
+              <h3 className="text-2xl font-bold text-secondary-900 mb-4">
+                Ready to Book Your Appointment?
+              </h3>
+              <p className="text-secondary-600 mb-6">
+                You&apos;ve selected a session on {selectedDay} at {selectedTime}
+              </p>
+              <Button 
+                onClick={handleBooking}
+                size="lg" 
+                className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+              >
+                Book Now
+                <ChevronRight className="ml-2 w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
     </MainLayout>
   )
 }

@@ -24,11 +24,14 @@ export default function BookingConfirmPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Get booking data from URL parameters
+    // Get booking data from URL parameters - support both old and new formats
     const service = searchParams.get('service')
     const personnel = searchParams.get('personnel')
     const time = searchParams.get('time')
     const day = searchParams.get('day')
+    const category = searchParams.get('category')
+    const duration = searchParams.get('duration')
+    const price = searchParams.get('price')
 
     if (service && personnel && time && day) {
       // In a real app, you would fetch this data from your backend
@@ -37,22 +40,22 @@ export default function BookingConfirmPage() {
         personnel: personnel,
         time: time,
         day: day,
-        // Mock data - in real app this would come from your database
+        // Use actual data from URL parameters or fallback to mock data
         serviceInfo: {
-          name: 'Hair Coloring & Styling',
-          category: 'Beauty & Wellness',
-          duration: '90 minutes',
-          price: '$120'
+          name: service,
+          category: category || 'Beauty & Wellness',
+          duration: duration || '90 minutes',
+          price: price || '$120'
         },
         personnelInfo: {
-          name: 'Sarah Johnson',
-          specialty: 'Hair Colorist & Stylist',
+          name: personnel,
+          specialty: category ? `${category} Specialist` : 'Hair Colorist & Stylist',
           photo: '/api/placeholder/150/150',
           rating: 4.9,
-          location: 'Downtown Beauty Studio',
+          location: category ? `${category} Center` : 'Downtown Beauty Studio',
           address: '123 Main St, City Center',
           phone: '+1 (555) 123-4567',
-          email: 'sarah.j@beautystudio.com'
+          email: `${personnel.toLowerCase().replace(/\s+/g, '.')}@smartq.com`
         }
       })
     }
@@ -81,7 +84,7 @@ export default function BookingConfirmPage() {
             <h2 className="text-2xl font-bold text-secondary-900 mb-4">Invalid Booking Link</h2>
             <p className="text-secondary-600 mb-6">The booking information is missing or invalid.</p>
             <Button asChild>
-              <Link href="/industries/beauty-wellness">Back to Services</Link>
+              <Link href="/industries">Back to Industries</Link>
             </Button>
           </div>
         </div>
@@ -135,9 +138,9 @@ export default function BookingConfirmPage() {
                   className="flex-1"
                   asChild
                 >
-                  <Link href="/industries/beauty-wellness">
+                  <Link href="/industries">
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Book Another Appointment
+                    Book Another Service
                   </Link>
                 </Button>
                 <Button 
@@ -161,11 +164,11 @@ export default function BookingConfirmPage() {
           {/* Header */}
           <div className="mb-8">
             <Link 
-              href="/industries/beauty-wellness"
+              href={`/industries/${bookingData?.serviceInfo?.category?.toLowerCase().replace(/\s+/g, '-').replace('&', '').replace(/\s+/g, '-') || 'beauty-wellness'}`}
               className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-4 transition-colors"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Beauty & Wellness
+              Back to {bookingData?.serviceInfo?.category || 'Beauty & Wellness'}
             </Link>
             <h1 className="text-3xl font-bold text-secondary-900">Confirm Your Appointment</h1>
             <p className="text-secondary-600">Please review and confirm your booking details</p>
