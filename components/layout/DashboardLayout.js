@@ -29,8 +29,8 @@ export function DashboardLayout({ children }) {
     },
     { 
       name: 'Queue Management', 
-      href: '/dashboard/queue', 
-      current: pathname.startsWith('/dashboard/queue'),
+      href: '/dashboard/queues', 
+      current: pathname.startsWith('/dashboard/queues'),
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h2m0 0h10a2 2 0 002-2V7a2 2 0 00-2-2H9m0 8v2m0-2h10" />

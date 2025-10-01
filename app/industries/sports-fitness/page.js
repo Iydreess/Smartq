@@ -185,17 +185,28 @@ export default function SportsFitnessPage() {
     const selectedServiceData = selectedCategoryData?.services.find(service => service.id === selectedService)
     const selectedPersonnelData = personnel[selectedCategory]?.find(person => person.id === selectedPersonnel)
     
-    const bookingData = {
-      category: selectedCategoryData?.name,
-      service: selectedServiceData?.name,
-      personnel: selectedPersonnelData?.name,
-      day: selectedDay,
-      time: selectedTime,
-      duration: selectedServiceData?.duration,
-      price: selectedServiceData?.price
+    // Validate that we have the minimum required data
+    if (!selectedServiceData?.name || !selectedPersonnelData?.name) {
+      alert('Please select a service and professional before booking.');
+      return;
     }
     
-    const params = new URLSearchParams(bookingData)
+    const bookingData = {
+      category: selectedCategoryData?.name || 'Sports & Fitness',
+      service: selectedServiceData.name,
+      personnel: selectedPersonnelData.name,
+      day: selectedDay || '',
+      time: selectedTime || '',
+      duration: selectedServiceData.duration || '60 min',
+      price: selectedServiceData.price || 'Contact for pricing'
+    }
+    
+    // Filter out empty values
+    const filteredData = Object.fromEntries(
+      Object.entries(bookingData).filter(([key, value]) => value !== '')
+    )
+    
+    const params = new URLSearchParams(filteredData)
     window.location.href = `/booking/confirm?${params.toString()}`
   }
 

@@ -33,29 +33,30 @@ export default function BookingConfirmPage() {
     const duration = searchParams.get('duration')
     const price = searchParams.get('price')
 
-    if (service && personnel && time && day) {
+    // More flexible validation - only require service and personnel at minimum
+    if (service && personnel) {
       // In a real app, you would fetch this data from your backend
       setBookingData({
         service: service,
         personnel: personnel,
-        time: time,
-        day: day,
+        time: time || 'TBD',
+        day: day || 'TBD',
         // Use actual data from URL parameters or fallback to mock data
         serviceInfo: {
           name: service,
-          category: category || 'Beauty & Wellness',
-          duration: duration || '90 minutes',
-          price: price || '$120'
+          category: category || 'Service',
+          duration: duration || '60 minutes',
+          price: price || 'Contact for pricing'
         },
         personnelInfo: {
           name: personnel,
-          specialty: category ? `${category} Specialist` : 'Hair Colorist & Stylist',
+          specialty: category ? `${category} Specialist` : 'Professional Service Provider',
           photo: '/api/placeholder/150/150',
           rating: 4.9,
-          location: category ? `${category} Center` : 'Downtown Beauty Studio',
+          location: category ? `${category} Center` : 'Service Location',
           address: '123 Main St, City Center',
           phone: '+1 (555) 123-4567',
-          email: `${personnel.toLowerCase().replace(/\s+/g, '.')}@smartq.com`
+          email: `${personnel.toLowerCase().replace(/[\s&]/g, '.').replace(/[^a-z.]/g, '')}@smartq.com`
         }
       })
     }
@@ -79,14 +80,26 @@ export default function BookingConfirmPage() {
   if (!bookingData) {
     return (
       <MainLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-secondary-900 mb-4">Invalid Booking Link</h2>
-            <p className="text-secondary-600 mb-6">The booking information is missing or invalid.</p>
-            <Button asChild>
-              <Link href="/industries">Back to Industries</Link>
-            </Button>
-          </div>
+        <div className="min-h-screen flex items-center justify-center bg-secondary-50">
+          <Card className="max-w-md w-full mx-4">
+            <CardContent className="p-8 text-center">
+              <div className="mb-6">
+                <Calendar className="h-16 w-16 text-secondary-400 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-secondary-900 mb-2">Booking Information Missing</h2>
+                <p className="text-secondary-600">
+                  Please select a service from one of our industry pages to proceed with booking.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Button asChild className="w-full">
+                  <Link href="/industries">Browse Services</Link>
+                </Button>
+                <Button variant="outline" asChild className="w-full">
+                  <Link href="/">Go Home</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </MainLayout>
     )
@@ -113,7 +126,12 @@ export default function BookingConfirmPage() {
                   </div>
                   <div className="flex items-center">
                     <Calendar className="h-5 w-5 text-primary-600 mr-3" />
-                    <span>{formatDay(bookingData.day)} at {bookingData.time}</span>
+                    <span>
+                      {bookingData.day !== 'TBD' && bookingData.time !== 'TBD' 
+                        ? `${formatDay(bookingData.day)} at ${bookingData.time}`
+                        : 'Date and time to be scheduled'
+                      }
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <Clock className="h-5 w-5 text-primary-600 mr-3" />
@@ -205,7 +223,12 @@ export default function BookingConfirmPage() {
                   </div>
                   <div className="flex justify-between py-2 border-b border-secondary-200">
                     <span className="text-secondary-600">Date & Time</span>
-                    <span className="font-medium">{formatDay(bookingData.day)} at {bookingData.time}</span>
+                    <span className="font-medium">
+                      {bookingData.day !== 'TBD' && bookingData.time !== 'TBD' 
+                        ? `${formatDay(bookingData.day)} at ${bookingData.time}`
+                        : 'To be scheduled'
+                      }
+                    </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-secondary-200">
                     <span className="text-secondary-600">Duration</span>
