@@ -41,13 +41,13 @@ export default function SettingsPage() {
     businessName: 'SmartQ Business Solutions',
     businessType: 'Multi-Service Provider',
     email: 'contact@smartqbusiness.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Business District, Suite 100, Boston, MA 02101',
+    phone: '+254 712 345 678',
+    address: 'Westlands, Nairobi, Kenya',
     website: 'https://smartqbusiness.com',
     description: 'Comprehensive business services including consulting, healthcare, fitness, and professional services.',
     logo: null,
-    timezone: 'America/New_York',
-    currency: 'USD',
+    timezone: 'Africa/Nairobi',
+    currency: 'KES',
     language: 'English',
     founded: '2023',
     licenseNumber: 'BUS123456789'
@@ -132,19 +132,19 @@ export default function SettingsPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
               <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="America/New_York">Eastern Time</option>
-                <option value="America/Chicago">Central Time</option>
-                <option value="America/Denver">Mountain Time</option>
-                <option value="America/Los_Angeles">Pacific Time</option>
+                <option value="Africa/Nairobi">East Africa Time (EAT)</option>
+                <option value="Africa/Lagos">West Africa Time (WAT)</option>
+                <option value="Africa/Johannesburg">South Africa Time (SAST)</option>
+                <option value="Africa/Cairo">Egypt Time (EET)</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
               <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="GBP">GBP - British Pound</option>
-                <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="KES">KSh - Kenyan Shilling</option>
+                <option value="TZS">TZS - Tanzanian Shilling</option>
+                <option value="UGX">UGX - Ugandan Shilling</option>
+                <option value="ZAR">ZAR - South African Rand</option>
               </select>
             </div>
             <div>
@@ -173,9 +173,9 @@ export default function SettingsPage() {
                   <span className="w-20 font-medium">{day}</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input type="time" defaultValue="09:00" className="px-2 py-1 border border-gray-300 rounded" />
+                  <input type="time" defaultValue={day === 'Saturday' ? '08:00' : '08:00'} className="px-2 py-1 border border-gray-300 rounded" />
                   <span>to</span>
-                  <input type="time" defaultValue="17:00" className="px-2 py-1 border border-gray-300 rounded" />
+                  <input type="time" defaultValue={day === 'Saturday' ? '13:00' : '17:00'} className="px-2 py-1 border border-gray-300 rounded" />
                 </div>
               </div>
             ))}

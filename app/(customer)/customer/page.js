@@ -331,7 +331,7 @@ export default function CustomerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900">Strategy Consulting</h3>
-                  <p className="text-sm text-gray-600">$300 • 90 min</p>
+                  <p className="text-sm text-gray-600">KSh 40,000 • 90 min</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="h-3 w-3 text-yellow-500 fill-current" />
                     <span className="text-sm text-gray-600">4.9 rating</span>
@@ -347,7 +347,7 @@ export default function CustomerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900">Business Planning</h3>
-                  <p className="text-sm text-gray-600">$250 • 60 min</p>
+                  <p className="text-sm text-gray-600">KSh 33,400 • 60 min</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="h-3 w-3 text-yellow-500 fill-current" />
                     <span className="text-sm text-gray-600">4.8 rating</span>
@@ -363,7 +363,7 @@ export default function CustomerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900">Financial Review</h3>
-                  <p className="text-sm text-gray-600">$200 • 45 min</p>
+                  <p className="text-sm text-gray-600">KSh 26,700 • 45 min</p>
                   <div className="flex items-center gap-1 mt-1">
                     <Star className="h-3 w-3 text-yellow-500 fill-current" />
                     <span className="text-sm text-gray-600">4.7 rating</span>

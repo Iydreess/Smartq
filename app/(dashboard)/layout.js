@@ -1,13 +1,17 @@
+'use client'
+
 import { DashboardLayout } from '@/components/layout'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { ROLES } from '@/lib/auth'
 
 /**
  * Dashboard Route Group Layout
- * Applies DashboardLayout to all pages in the (dashboard) route group
+ * Accessible by admin and business users
  */
 export default function DashboardGroupLayout({ children }) {
   return (
-    <DashboardLayout>
-      {children}
-    </DashboardLayout>
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.BUSINESS]}>
+      <DashboardLayout>{children}</DashboardLayout>
+    </ProtectedRoute>
   )
 }

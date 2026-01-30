@@ -218,7 +218,7 @@ export default function BookingPage() {
                 </div>
                 <div className="border-t border-secondary-200 pt-2 flex justify-between font-semibold">
                   <span>Total:</span>
-                  <span className="text-primary-600">$50</span>
+                  <span className="text-primary-600">KSh 6,700</span>
                 </div>
               </div>
             </CardContent>

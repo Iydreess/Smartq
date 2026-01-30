@@ -196,7 +196,7 @@ export default function Home() {
             Ready to Transform Your Business?
           </h2>
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto animate-slide-in-up">
-            Join hundreds of businesses already using Smartq to improve customer 
+            Join hundreds of Kenyan businesses already using Smartq to improve customer 
             experience and operational efficiency.
           </p>
           

@@ -66,7 +66,7 @@ export default function CustomerNotifications() {
       id: 3,
       type: 'payment_received',
       title: 'Payment Processed',
-      message: 'Your payment of $300.00 for Strategy Consulting has been successfully processed. Receipt #RCP-2025-001.',
+      message: 'Your payment of KSh 40,000.00 for Strategy Consulting has been successfully processed. Receipt #RCP-2025-001.',
       timestamp: '2025-09-30T16:45:00Z',
       isRead: true,
       priority: 'low',

@@ -5,6 +5,227 @@ import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/u
 import { 
   Package, Plus, Search, Filter, Edit, Trash2, Eye,
   Clock, Users, DollarSign, Star, Tag, Settings,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   Upload, Download, Copy, BarChart3, TrendingUp,
   Calendar, MapPin, Phone, Mail, CheckCircle,
   AlertCircle, XCircle, MoreHorizontal, Toggle
@@ -26,8 +247,8 @@ export default function ServicesPage() {
       name: 'Strategy Consulting',
       category: 'Business Consulting',
       description: 'Comprehensive business strategy development and planning sessions',
-      price: 300,
-      currency: 'USD',
+      price: 39800,
+      currency: 'KES',
       duration: 90,
       staff: ['James Wilson', 'Sarah Mitchell'],
       bookings: 45,
@@ -50,8 +271,8 @@ export default function ServicesPage() {
       name: 'Cardiology Consultation',
       category: 'Healthcare',
       description: 'Expert cardiac evaluation and treatment planning',
-      price: 220,
-      currency: 'USD',
+      price: 29200,
+      currency: 'KES',
       duration: 60,
       staff: ['Dr. Emily Rodriguez', 'Dr. Michael Chen'],
       bookings: 120,
@@ -74,8 +295,8 @@ export default function ServicesPage() {
       name: 'Personal Training Session',
       category: 'Sports & Fitness',
       description: 'One-on-one fitness training and workout planning',
-      price: 80,
-      currency: 'USD',
+      price: 10600,
+      currency: 'KES',
       duration: 60,
       staff: ['Alex Johnson', 'Lisa Martinez', 'Mike Thompson'],
       bookings: 200,
@@ -98,8 +319,8 @@ export default function ServicesPage() {
       name: 'Tax Preparation',
       category: 'Professional Services',
       description: 'Complete tax filing and preparation services',
-      price: 150,
-      currency: 'USD',
+      price: 19900,
+      currency: 'KES',
       duration: 90,
       staff: ['Robert Chang', 'Jennifer Lee'],
       bookings: 85,
@@ -122,8 +343,8 @@ export default function ServicesPage() {
       name: 'Group Yoga Class',
       category: 'Sports & Fitness',
       description: 'Relaxing group yoga session for all skill levels',
-      price: 25,
-      currency: 'USD',
+      price: 3300,
+      currency: 'KES',
       duration: 75,
       staff: ['Sarah Williams', 'Emma Davis'],
       bookings: 340,
@@ -146,8 +367,8 @@ export default function ServicesPage() {
       name: 'Legal Consultation',
       category: 'Professional Services',
       description: 'Professional legal advice and consultation',
-      price: 250,
-      currency: 'USD',
+      price: 33100,
+      currency: 'KES',
       duration: 60,
       staff: ['David Wilson', 'Rachel Brown'],
       bookings: 65,

@@ -24,10 +24,10 @@ export default function HealthcarePage() {
       description: 'Primary care physicians and family doctors',
       color: 'from-blue-500 to-indigo-600',
       services: [
-        { id: 'general-checkup', name: 'General Health Checkup', duration: '45 min', price: '$120' },
-        { id: 'chronic-care', name: 'Chronic Disease Management', duration: '60 min', price: '$150' },
-        { id: 'preventive-care', name: 'Preventive Care Consultation', duration: '30 min', price: '$90' },
-        { id: 'health-screening', name: 'Health Screening', duration: '90 min', price: '$200' }
+        { id: 'general-checkup', name: 'General Health Checkup', duration: '45 min', price: 'KSh 16,000' },
+        { id: 'chronic-care', name: 'Chronic Disease Management', duration: '60 min', price: 'KSh 20,000' },
+        { id: 'preventive-care', name: 'Preventive Care Consultation', duration: '30 min', price: 'KSh 12,000' },
+        { id: 'health-screening', name: 'Health Screening', duration: '90 min', price: 'KSh 26,700' }
       ]
     },
     {
@@ -37,10 +37,10 @@ export default function HealthcarePage() {
       description: 'Specialized medical consultations and treatments',
       color: 'from-red-500 to-pink-600',
       services: [
-        { id: 'cardiology', name: 'Cardiology Consultation', duration: '60 min', price: '$220' },
-        { id: 'dermatology', name: 'Dermatology Consultation', duration: '45 min', price: '$180' },
-        { id: 'orthopedics', name: 'Orthopedic Consultation', duration: '60 min', price: '$200' },
-        { id: 'endocrinology', name: 'Endocrinology Consultation', duration: '50 min', price: '$190' }
+        { id: 'cardiology', name: 'Cardiology Consultation', duration: '60 min', price: 'KSh 29,400' },
+        { id: 'dermatology', name: 'Dermatology Consultation', duration: '45 min', price: 'KSh 24,000' },
+        { id: 'orthopedics', name: 'Orthopedic Consultation', duration: '60 min', price: 'KSh 26,700' },
+        { id: 'endocrinology', name: 'Endocrinology Consultation', duration: '50 min', price: 'KSh 25,400' }
       ]
     },
     {
@@ -50,10 +50,10 @@ export default function HealthcarePage() {
       description: 'Psychology, psychiatry, and counseling services',
       color: 'from-green-500 to-emerald-600',
       services: [
-        { id: 'therapy-session', name: 'Individual Therapy Session', duration: '60 min', price: '$140' },
-        { id: 'psychiatric-eval', name: 'Psychiatric Evaluation', duration: '90 min', price: '$280' },
-        { id: 'couples-therapy', name: 'Couples Therapy', duration: '75 min', price: '$180' },
-        { id: 'group-therapy', name: 'Group Therapy Session', duration: '90 min', price: '$80' }
+        { id: 'therapy-session', name: 'Individual Therapy Session', duration: '60 min', price: 'KSh 18,700' },
+        { id: 'psychiatric-eval', name: 'Psychiatric Evaluation', duration: '90 min', price: 'KSh 37,400' },
+        { id: 'couples-therapy', name: 'Couples Therapy', duration: '75 min', price: 'KSh 24,000' },
+        { id: 'group-therapy', name: 'Group Therapy Session', duration: '90 min', price: 'KSh 10,700' }
       ]
     },
     {
@@ -63,10 +63,10 @@ export default function HealthcarePage() {
       description: 'Medical imaging, lab tests, and diagnostic procedures',
       color: 'from-purple-500 to-violet-600',
       services: [
-        { id: 'blood-work', name: 'Comprehensive Blood Work', duration: '30 min', price: '$85' },
-        { id: 'mri-scan', name: 'MRI Scan', duration: '45 min', price: '$450' },
-        { id: 'ultrasound', name: 'Ultrasound Examination', duration: '30 min', price: '$150' },
-        { id: 'x-ray', name: 'X-Ray Imaging', duration: '15 min', price: '$75' }
+        { id: 'blood-work', name: 'Comprehensive Blood Work', duration: '30 min', price: 'KSh 11,400' },
+        { id: 'mri-scan', name: 'MRI Scan', duration: '45 min', price: 'KSh 60,000' },
+        { id: 'ultrasound', name: 'Ultrasound Examination', duration: '30 min', price: 'KSh 20,000' },
+        { id: 'x-ray', name: 'X-Ray Imaging', duration: '15 min', price: 'KSh 10,000' }
       ]
     }
   ]

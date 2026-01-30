@@ -24,10 +24,10 @@ export default function PublicServicesPage() {
       description: 'Municipal offices, permits, and administrative services',
       color: 'from-blue-500 to-indigo-600',
       services: [
-        { id: 'permit-application', name: 'Building Permit Application', duration: '45 min', price: '$75' },
-        { id: 'business-license', name: 'Business License Renewal', duration: '30 min', price: '$50' },
-        { id: 'property-assessment', name: 'Property Tax Assessment', duration: '60 min', price: '$85' },
-        { id: 'zoning-inquiry', name: 'Zoning Inquiry', duration: '30 min', price: '$40' }
+        { id: 'permit-application', name: 'Building Permit Application', duration: '45 min', price: 'KSh 10,000' },
+        { id: 'business-license', name: 'Business License Renewal', duration: '30 min', price: 'KSh 6,700' },
+        { id: 'property-assessment', name: 'Property Tax Assessment', duration: '60 min', price: 'KSh 11,400' },
+        { id: 'zoning-inquiry', name: 'Zoning Inquiry', duration: '30 min', price: 'KSh 5,400' }
       ]
     },
     {
@@ -50,10 +50,10 @@ export default function PublicServicesPage() {
       description: 'Court services, legal aid, and public defender consultations',
       color: 'from-purple-500 to-violet-600',
       services: [
-        { id: 'court-filing', name: 'Court Document Filing', duration: '30 min', price: '$25' },
+        { id: 'court-filing', name: 'Court Document Filing', duration: '30 min', price: 'KSh 3,400' },
         { id: 'legal-aid', name: 'Legal Aid Consultation', duration: '60 min', price: 'Free' },
         { id: 'public-defender', name: 'Public Defender Meeting', duration: '45 min', price: 'Free' },
-        { id: 'notary-services', name: 'Notary Services', duration: '15 min', price: '$10' }
+        { id: 'notary-services', name: 'Notary Services', duration: '15 min', price: 'KSh 1,400' }
       ]
     },
     {
@@ -64,8 +64,8 @@ export default function PublicServicesPage() {
       color: 'from-red-500 to-pink-600',
       services: [
         { id: 'police-report', name: 'Police Report Filing', duration: '30 min', price: 'Free' },
-        { id: 'fingerprinting', name: 'Fingerprinting Services', duration: '20 min', price: '$15' },
-        { id: 'fire-inspection', name: 'Fire Safety Inspection', duration: '60 min', price: '$100' },
+        { id: 'fingerprinting', name: 'Fingerprinting Services', duration: '20 min', price: 'KSh 2,000' },
+        { id: 'fire-inspection', name: 'Fire Safety Inspection', duration: '60 min', price: 'KSh 13,400' },
         { id: 'emergency-planning', name: 'Emergency Planning Consultation', duration: '45 min', price: 'Free' }
       ]
     }

@@ -24,10 +24,10 @@ export default function ProfessionalServicesPage() {
       description: 'Professional accounting and tax advisory services',
       color: 'from-blue-500 to-indigo-600',
       services: [
-        { id: 'tax-preparation', name: 'Tax Preparation', duration: '90 min', price: '$150' },
-        { id: 'business-consulting', name: 'Business Consulting', duration: '60 min', price: '$200' },
-        { id: 'financial-planning', name: 'Financial Planning', duration: '120 min', price: '$300' },
-        { id: 'audit-services', name: 'Audit Services', duration: '240 min', price: '$500' }
+        { id: 'tax-preparation', name: 'Tax Preparation', duration: '90 min', price: 'KSh 20,000' },
+        { id: 'business-consulting', name: 'Business Consulting', duration: '60 min', price: 'KSh 26,500' },
+        { id: 'financial-planning', name: 'Financial Planning', duration: '120 min', price: 'KSh 39,800' },
+        { id: 'audit-services', name: 'Audit Services', duration: '240 min', price: 'KSh 66,300' }
       ]
     },
     {
@@ -37,10 +37,10 @@ export default function ProfessionalServicesPage() {
       description: 'Legal consultations and document services',
       color: 'from-gray-700 to-gray-900',
       services: [
-        { id: 'legal-consultation', name: 'Legal Consultation', duration: '60 min', price: '$250' },
-        { id: 'contract-review', name: 'Contract Review', duration: '90 min', price: '$350' },
-        { id: 'notary-services', name: 'Notary Services', duration: '30 min', price: '$50' },
-        { id: 'document-drafting', name: 'Document Drafting', duration: '120 min', price: '$400' }
+        { id: 'legal-consultation', name: 'Legal Consultation', duration: '60 min', price: 'KSh 33,100' },
+        { id: 'contract-review', name: 'Contract Review', duration: '90 min', price: 'KSh 46,400' },
+        { id: 'notary-services', name: 'Notary Services', duration: '30 min', price: 'KSh 6,600' },
+        { id: 'document-drafting', name: 'Document Drafting', duration: '120 min', price: 'KSh 53,000' }
       ]
     },
     {
@@ -50,10 +50,10 @@ export default function ProfessionalServicesPage() {
       description: 'Strategic business and management consulting',
       color: 'from-green-600 to-emerald-700',
       services: [
-        { id: 'strategy-consulting', name: 'Strategy Consulting', duration: '90 min', price: '$300' },
-        { id: 'process-improvement', name: 'Process Improvement', duration: '120 min', price: '$350' },
-        { id: 'market-research', name: 'Market Research', duration: '180 min', price: '$450' },
-        { id: 'project-management', name: 'Project Management', duration: '60 min', price: '$200' }
+        { id: 'strategy-consulting', name: 'Strategy Consulting', duration: '90 min', price: 'KSh 40,000' },
+        { id: 'process-improvement', name: 'Process Improvement', duration: '120 min', price: 'KSh 46,800' },
+        { id: 'market-research', name: 'Market Research', duration: '180 min', price: 'KSh 60,100' },
+        { id: 'project-management', name: 'Project Management', duration: '60 min', price: 'KSh 26,700' }
       ]
     },
     {
@@ -63,10 +63,10 @@ export default function ProfessionalServicesPage() {
       description: 'IT consulting and technical support',
       color: 'from-purple-600 to-violet-700',
       services: [
-        { id: 'it-consulting', name: 'IT Consulting', duration: '60 min', price: '$180' },
-        { id: 'software-development', name: 'Software Development', duration: '120 min', price: '$400' },
-        { id: 'system-integration', name: 'System Integration', duration: '180 min', price: '$500' },
-        { id: 'cybersecurity-audit', name: 'Cybersecurity Audit', duration: '240 min', price: '$600' }
+        { id: 'it-consulting', name: 'IT Consulting', duration: '60 min', price: 'KSh 24,000' },
+        { id: 'software-development', name: 'Software Development', duration: '120 min', price: 'KSh 53,400' },
+        { id: 'system-integration', name: 'System Integration', duration: '180 min', price: 'KSh 66,800' },
+        { id: 'cybersecurity-audit', name: 'Cybersecurity Audit', duration: '240 min', price: 'KSh 80,200' }
       ]
     }
   ]

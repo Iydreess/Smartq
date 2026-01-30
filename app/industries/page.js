@@ -52,7 +52,7 @@ export default function IndustriesPage() {
       href: '/industries/public-services',
       icon: Building2,
       description: 'Modernize government services and reduce citizen wait times with digital queue solutions.',
-      services: ['DMV Offices', 'Passport Services', 'Municipal Services', 'Public Health'],
+      services: ['NTSA Services', 'eCitizen Portal', 'County Services', 'Public Health'],
       color: 'from-purple-500 to-indigo-600',
       bgColor: 'from-purple-50 to-indigo-100',
       stats: { businesses: '800+', satisfaction: '92%' }
@@ -224,7 +224,7 @@ export default function IndustriesPage() {
             Ready to Transform Your Industry?
           </h2>
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of businesses already using Smartq to deliver exceptional experiences in their industry.
+            Join thousands of Kenyan businesses already using Smartq to deliver exceptional customer experiences.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="px-8 py-4 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors">

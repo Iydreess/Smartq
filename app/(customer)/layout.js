@@ -1,13 +1,17 @@
+'use client'
+
 import { CustomerLayout } from '@/components/layout'
+import ProtectedRoute from '@/components/auth/ProtectedRoute'
+import { ROLES } from '@/lib/auth'
 
 /**
- * Customer Dashboard Route Group Layout
- * Applies CustomerLayout to all pages in the (customer) route group
+ * Customer Route Group Layout
+ * Only accessible by customer users
  */
 export default function CustomerGroupLayout({ children }) {
   return (
-    <CustomerLayout>
-      {children}
-    </CustomerLayout>
+    <ProtectedRoute allowedRoles={[ROLES.CUSTOMER]}>
+      <CustomerLayout>{children}</CustomerLayout>
+    </ProtectedRoute>
   )
 }

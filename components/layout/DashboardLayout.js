@@ -1,9 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
+import { getCurrentUser, removeCurrentUser } from '@/lib/auth'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 
 /**
  * DashboardLayout Component - Business dashboard layout
@@ -14,6 +17,18 @@ import { Button } from '@/components/ui'
  */
 export function DashboardLayout({ children }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    setUser(getCurrentUser())
+  }, [])
+
+  const handleLogout = () => {
+    removeCurrentUser()
+    toast.success('Logged out successfully')
+    router.push('/login')
+  }
   
   const navigation = [
     { 
@@ -129,12 +144,23 @@ export function DashboardLayout({ children }) {
               {/* User Menu */}
               <div className="flex items-center space-x-3">
                 <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-secondary-900">John Doe</p>
-                  <p className="text-xs text-secondary-500">Business Owner</p>
+                  <p className="text-sm font-medium text-secondary-900">{user?.name || 'User'}</p>
+                  <p className="text-xs text-secondary-500 capitalize">{user?.role || 'User'}</p>
                 </div>
                 <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">JD</span>
+                  <span className="text-white font-medium text-sm">
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </span>
                 </div>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-secondary-600 hover:text-secondary-900 px-3 py-2 rounded-lg hover:bg-secondary-100 transition-colors"
+                  title="Logout"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>

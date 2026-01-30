@@ -28,7 +28,7 @@ export default function CustomerProfile() {
       city: 'San Francisco',
       state: 'CA',
       zipCode: '94102',
-      country: 'United States'
+      country: 'Kenya'
     },
     preferences: {
       notifications: {
@@ -38,7 +38,7 @@ export default function CustomerProfile() {
         marketing: false
       },
       language: 'en',
-      timezone: 'America/Los_Angeles',
+      timezone: 'Africa/Nairobi',
       accessibility: {
         largeText: false,
         highContrast: false,
@@ -380,7 +380,9 @@ export default function CustomerProfile() {
                       disabled={!isEditing}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-50"
                     >
-                      <option>United States</option>
+                      <option>Kenya</option>
+                      <option>Uganda</option>
+                      <option>Tanzania</option>
                       <option>Canada</option>
                       <option>United Kingdom</option>
                       <option>Australia</option>
@@ -459,10 +461,9 @@ export default function CustomerProfile() {
                     onChange={(e) => updatePreferences('timezone', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   >
-                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                    <option value="America/Denver">Mountain Time (MT)</option>
-                    <option value="America/Chicago">Central Time (CT)</option>
-                    <option value="America/New_York">Eastern Time (ET)</option>
+                    <option value="Africa/Nairobi">East Africa Time (EAT)</option>
+                    <option value="Africa/Kampala">Uganda Time</option>
+                    <option value="Africa/Dar_es_Salaam">Tanzania Time</option>
                   </select>
                 </div>
                 <div>

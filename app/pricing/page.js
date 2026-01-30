@@ -8,7 +8,7 @@ export default function PricingPage() {
       name: 'Starter',
       icon: Zap,
       description: 'Perfect for small businesses just getting started',
-      price: '$29',
+      price: 'KSh 3,900',
       period: '/month',
       color: 'from-primary-500 to-primary-600',
       bgColor: 'from-primary-50 to-primary-100',
@@ -31,7 +31,7 @@ export default function PricingPage() {
       name: 'Professional',
       icon: Star,
       description: 'Ideal for growing businesses with multiple services',
-      price: '$79',
+      price: 'KSh 10,500',
       period: '/month',
       color: 'from-accent-500 to-luxury-600',
       bgColor: 'from-accent-50 to-luxury-100',
@@ -78,22 +78,22 @@ export default function PricingPage() {
   const addOns = [
     {
       name: 'Premium Analytics',
-      price: '$19/month',
+      price: 'KSh 2,500/month',
       description: 'Advanced reporting, custom dashboards, and business intelligence tools'
     },
     {
       name: 'White-Label Branding',
-      price: '$49/month', 
+      price: 'KSh 6,500/month', 
       description: 'Remove Smartq branding and use your own logo and colors'
     },
     {
       name: 'API & Webhooks',
-      price: '$29/month',
+      price: 'KSh 3,900/month',
       description: 'Full API access with real-time webhooks for custom integrations'
     },
     {
       name: 'Priority Support',
-      price: '$39/month',
+      price: 'KSh 5,200/month',
       description: '24/7 phone support with dedicated account manager'
     }
   ]
@@ -109,7 +109,7 @@ export default function PricingPage() {
     },
     {
       question: 'What payment methods do you accept?',
-      answer: 'We accept all major credit cards (Visa, MasterCard, American Express), PayPal, and bank transfers for annual subscriptions.'
+      answer: 'We accept M-PESA, Airtel Money, major credit/debit cards (Visa, Mastercard), and bank transfers (KCB, Equity Bank, Co-operative Bank, NCBA) for annual subscriptions.'
     },
     {
       question: 'Do you offer discounts for annual billing?',

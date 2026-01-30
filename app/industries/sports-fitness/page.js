@@ -24,10 +24,10 @@ export default function SportsFitnessPage() {
       description: 'One-on-one fitness coaching and strength training',
       color: 'from-green-500 to-emerald-600',
       services: [
-        { id: 'strength-training', name: 'Strength Training', duration: '60 min', price: '$80' },
-        { id: 'hiit-training', name: 'HIIT Training', duration: '45 min', price: '$70' },
-        { id: 'fitness-assessment', name: 'Fitness Assessment', duration: '90 min', price: '$100' },
-        { id: 'functional-training', name: 'Functional Training', duration: '60 min', price: '$75' }
+        { id: 'strength-training', name: 'Strength Training', duration: '60 min', price: 'KSh 10,700' },
+        { id: 'hiit-training', name: 'HIIT Training', duration: '45 min', price: 'KSh 9,400' },
+        { id: 'fitness-assessment', name: 'Fitness Assessment', duration: '90 min', price: 'KSh 13,400' },
+        { id: 'functional-training', name: 'Functional Training', duration: '60 min', price: 'KSh 10,000' }
       ]
     },
     {
@@ -37,10 +37,10 @@ export default function SportsFitnessPage() {
       description: 'Mind-body wellness and flexibility training',
       color: 'from-purple-500 to-pink-600',
       services: [
-        { id: 'hatha-yoga', name: 'Hatha Yoga', duration: '75 min', price: '$50' },
-        { id: 'vinyasa-flow', name: 'Vinyasa Flow', duration: '60 min', price: '$45' },
-        { id: 'pilates-mat', name: 'Pilates Mat Class', duration: '60 min', price: '$40' },
-        { id: 'restorative-yoga', name: 'Restorative Yoga', duration: '90 min', price: '$55' }
+        { id: 'hatha-yoga', name: 'Hatha Yoga', duration: '75 min', price: 'KSh 6,700' },
+        { id: 'vinyasa-flow', name: 'Vinyasa Flow', duration: '60 min', price: 'KSh 6,000' },
+        { id: 'pilates-mat', name: 'Pilates Mat Class', duration: '60 min', price: 'KSh 5,400' },
+        { id: 'restorative-yoga', name: 'Restorative Yoga', duration: '90 min', price: 'KSh 7,400' }
       ]
     },
     {
@@ -50,10 +50,10 @@ export default function SportsFitnessPage() {
       description: 'Rehabilitation and injury prevention services',
       color: 'from-blue-500 to-cyan-600',
       services: [
-        { id: 'injury-rehab', name: 'Injury Rehabilitation', duration: '60 min', price: '$95' },
-        { id: 'sports-massage', name: 'Sports Massage', duration: '90 min', price: '$120' },
-        { id: 'movement-assessment', name: 'Movement Assessment', duration: '75 min', price: '$110' },
-        { id: 'recovery-therapy', name: 'Recovery Therapy', duration: '60 min', price: '$85' }
+        { id: 'injury-rehab', name: 'Injury Rehabilitation', duration: '60 min', price: 'KSh 12,700' },
+        { id: 'sports-massage', name: 'Sports Massage', duration: '90 min', price: 'KSh 16,000' },
+        { id: 'movement-assessment', name: 'Movement Assessment', duration: '75 min', price: 'KSh 14,700' },
+        { id: 'recovery-therapy', name: 'Recovery Therapy', duration: '60 min', price: 'KSh 11,400' }
       ]
     },
     {
@@ -63,10 +63,10 @@ export default function SportsFitnessPage() {
       description: 'Specialized coaching for various sports and activities',
       color: 'from-orange-500 to-red-600',
       services: [
-        { id: 'tennis-coaching', name: 'Tennis Coaching', duration: '60 min', price: '$65' },
-        { id: 'swimming-lessons', name: 'Swimming Lessons', duration: '45 min', price: '$55' },
-        { id: 'basketball-training', name: 'Basketball Training', duration: '90 min', price: '$75' },
-        { id: 'martial-arts', name: 'Martial Arts Training', duration: '60 min', price: '$60' }
+        { id: 'tennis-coaching', name: 'Tennis Coaching', duration: '60 min', price: 'KSh 8,700' },
+        { id: 'swimming-lessons', name: 'Swimming Lessons', duration: '45 min', price: 'KSh 7,400' },
+        { id: 'basketball-training', name: 'Basketball Training', duration: '90 min', price: 'KSh 10,000' },
+        { id: 'martial-arts', name: 'Martial Arts Training', duration: '60 min', price: 'KSh 8,000' }
       ]
     }
   ]

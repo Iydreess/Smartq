@@ -24,10 +24,10 @@ export default function EventsEntertainmentPage() {
       description: 'Wedding venues, conference halls, and party spaces',
       color: 'from-purple-500 to-pink-600',
       services: [
-        { id: 'venue-tour', name: 'Venue Tour & Consultation', duration: '60 min', price: '$50' },
-        { id: 'event-planning', name: 'Event Planning Session', duration: '90 min', price: '$100' },
-        { id: 'catering-consultation', name: 'Catering Consultation', duration: '45 min', price: '$75' },
-        { id: 'decoration-planning', name: 'Decoration Planning', duration: '75 min', price: '$85' }
+        { id: 'venue-tour', name: 'Venue Tour & Consultation', duration: '60 min', price: 'KSh 6,700' },
+        { id: 'event-planning', name: 'Event Planning Session', duration: '90 min', price: 'KSh 13,400' },
+        { id: 'catering-consultation', name: 'Catering Consultation', duration: '45 min', price: 'KSh 10,000' },
+        { id: 'decoration-planning', name: 'Decoration Planning', duration: '75 min', price: 'KSh 11,400' }
       ]
     },
     {
@@ -37,10 +37,10 @@ export default function EventsEntertainmentPage() {
       description: 'Professional photographers for all occasions',
       color: 'from-blue-500 to-cyan-600',
       services: [
-        { id: 'portrait-session', name: 'Portrait Photography', duration: '120 min', price: '$200' },
-        { id: 'event-photography', name: 'Event Photography', duration: '240 min', price: '$500' },
-        { id: 'product-photography', name: 'Product Photography', duration: '90 min', price: '$150' },
-        { id: 'headshot-session', name: 'Professional Headshots', duration: '60 min', price: '$120' }
+        { id: 'portrait-session', name: 'Portrait Photography', duration: '120 min', price: 'KSh 26,700' },
+        { id: 'event-photography', name: 'Event Photography', duration: '240 min', price: 'KSh 66,800' },
+        { id: 'product-photography', name: 'Product Photography', duration: '90 min', price: 'KSh 20,000' },
+        { id: 'headshot-session', name: 'Professional Headshots', duration: '60 min', price: 'KSh 16,000' }
       ]
     },
     {
@@ -50,10 +50,10 @@ export default function EventsEntertainmentPage() {
       description: 'Local tours and travel experiences',
       color: 'from-green-500 to-teal-600',
       services: [
-        { id: 'city-tour', name: 'City Walking Tour', duration: '180 min', price: '$45' },
-        { id: 'museum-tour', name: 'Museum Guided Tour', duration: '120 min', price: '$35' },
-        { id: 'food-tour', name: 'Culinary Food Tour', duration: '210 min', price: '$65' },
-        { id: 'historical-tour', name: 'Historical Site Tour', duration: '150 min', price: '$40' }
+        { id: 'city-tour', name: 'City Walking Tour', duration: '180 min', price: 'KSh 6,000' },
+        { id: 'museum-tour', name: 'Museum Guided Tour', duration: '120 min', price: 'KSh 4,700' },
+        { id: 'food-tour', name: 'Culinary Food Tour', duration: '210 min', price: 'KSh 8,700' },
+        { id: 'historical-tour', name: 'Historical Site Tour', duration: '150 min', price: 'KSh 5,400' }
       ]
     },
     {
@@ -63,10 +63,10 @@ export default function EventsEntertainmentPage() {
       description: 'Musicians, DJs, and performers',
       color: 'from-orange-500 to-red-600',
       services: [
-        { id: 'dj-consultation', name: 'DJ Consultation', duration: '45 min', price: '$60' },
-        { id: 'band-audition', name: 'Live Band Audition', duration: '60 min', price: '$80' },
-        { id: 'entertainment-planning', name: 'Entertainment Planning', duration: '90 min', price: '$100' },
-        { id: 'performer-booking', name: 'Performer Booking', duration: '30 min', price: '$50' }
+        { id: 'dj-consultation', name: 'DJ Consultation', duration: '45 min', price: 'KSh 8,000' },
+        { id: 'band-audition', name: 'Live Band Audition', duration: '60 min', price: 'KSh 10,700' },
+        { id: 'entertainment-planning', name: 'Entertainment Planning', duration: '90 min', price: 'KSh 13,400' },
+        { id: 'performer-booking', name: 'Performer Booking', duration: '30 min', price: 'KSh 6,700' }
       ]
     }
   ]

@@ -22,17 +22,17 @@ export default function DentalBookingPage() {
     rating: 4.9,
     reviews: 234,
     image: '/api/placeholder/200/200',
-    location: 'Downtown Dental Clinic',
-    phone: '+1 (555) 123-4567'
+    location: 'Nairobi Dental Clinic',
+    phone: '+254 712 345 678'
   }
 
   const services = [
-    { id: 1, name: 'Dental Checkup & Cleaning', duration: '60 min', price: '$120' },
-    { id: 2, name: 'Teeth Whitening', duration: '90 min', price: '$350' },
-    { id: 3, name: 'Dental Filling', duration: '45 min', price: '$180' },
-    { id: 4, name: 'Root Canal Treatment', duration: '120 min', price: '$800' },
-    { id: 5, name: 'Crown Placement', duration: '90 min', price: '$1200' },
-    { id: 6, name: 'Orthodontic Consultation', duration: '45 min', price: '$150' }
+    { id: 1, name: 'Dental Checkup & Cleaning', duration: '60 min', price: 'KSh 16,000' },
+    { id: 2, name: 'Teeth Whitening', duration: '90 min', price: 'KSh 46,800' },
+    { id: 3, name: 'Dental Filling', duration: '45 min', price: 'KSh 24,000' },
+    { id: 4, name: 'Root Canal Treatment', duration: '120 min', price: 'KSh 107,000' },
+    { id: 5, name: 'Crown Placement', duration: '90 min', price: 'KSh 160,000' },
+    { id: 6, name: 'Orthodontic Consultation', duration: '45 min', price: 'KSh 20,000' }
   ]
 
   // Generate time slots for the week

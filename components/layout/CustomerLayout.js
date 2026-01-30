@@ -1,9 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui'
+import { getCurrentUser, removeCurrentUser } from '@/lib/auth'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 
 /**
  * CustomerLayout Component - Customer dashboard layout
@@ -14,6 +17,18 @@ import { Button } from '@/components/ui'
  */
 export function CustomerLayout({ children }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    setUser(getCurrentUser())
+  }, [])
+
+  const handleLogout = () => {
+    removeCurrentUser()
+    toast.success('Logged out successfully')
+    router.push('/login')
+  }
   
   const navigation = [
     { 
@@ -115,17 +130,33 @@ export function CustomerLayout({ children }) {
               </Link>
               
               {/* User Menu */}
-              <Link href="/customer/profile">
-                <div className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors cursor-pointer">
-                  <div className="hidden sm:block text-right">
-                    <p className="text-sm font-medium text-gray-900">Sarah Johnson</p>
-                    <p className="text-xs text-gray-500">Customer</p>
+              <div className="flex items-center space-x-3">
+                <Link href="/customer/profile">
+                  <div className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors cursor-pointer">
+                    <div className="hidden sm:block text-right">
+                      <p className="text-sm font-medium text-gray-900">{user?.name || 'Customer'}</p>
+                      <p className="text-xs text-gray-500 capitalize">{user?.role || 'customer'}</p>
+                    </div>
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-medium text-sm">
+                        {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'CU'}
+                      </span>
+                    </div>
                   </div>
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-medium text-sm">SJ</span>
-                  </div>
-                </div>
-              </Link>
+                </Link>
+              
+                {/* Logout Button */}
+                <button 
+                  onClick={handleLogout}
+                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Logout"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="sr-only">Logout</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -24,10 +24,10 @@ export default function EducationPage() {
       description: 'Academic advisors, professors, and student services',
       color: 'from-blue-500 to-indigo-600',
       services: [
-        { id: 'academic-advising', name: 'Academic Advising', duration: '45 min', price: '$75' },
-        { id: 'professor-consultation', name: 'Professor Consultation', duration: '30 min', price: '$60' },
-        { id: 'career-counseling', name: 'Career Counseling', duration: '60 min', price: '$90' },
-        { id: 'research-supervision', name: 'Research Supervision', duration: '90 min', price: '$120' }
+        { id: 'academic-advising', name: 'Academic Advising', duration: '45 min', price: 'KSh 10,000' },
+        { id: 'professor-consultation', name: 'Professor Consultation', duration: '30 min', price: 'KSh 8,000' },
+        { id: 'career-counseling', name: 'Career Counseling', duration: '60 min', price: 'KSh 12,000' },
+        { id: 'research-supervision', name: 'Research Supervision', duration: '90 min', price: 'KSh 16,000' }
       ]
     },
     {
@@ -37,10 +37,10 @@ export default function EducationPage() {
       description: 'Subject tutoring and exam preparation',
       color: 'from-green-500 to-emerald-600',
       services: [
-        { id: 'math-tutoring', name: 'Math Tutoring', duration: '60 min', price: '$50' },
-        { id: 'science-tutoring', name: 'Science Tutoring', duration: '60 min', price: '$55' },
-        { id: 'language-tutoring', name: 'Language Arts', duration: '45 min', price: '$45' },
-        { id: 'test-prep', name: 'Test Preparation', duration: '90 min', price: '$80' }
+        { id: 'math-tutoring', name: 'Math Tutoring', duration: '60 min', price: 'KSh 6,700' },
+        { id: 'science-tutoring', name: 'Science Tutoring', duration: '60 min', price: 'KSh 7,400' },
+        { id: 'language-tutoring', name: 'Language Arts', duration: '45 min', price: 'KSh 6,000' },
+        { id: 'test-prep', name: 'Test Preparation', duration: '90 min', price: 'KSh 10,700' }
       ]
     },
     {
@@ -50,10 +50,10 @@ export default function EducationPage() {
       description: 'Language learning and conversation practice',
       color: 'from-purple-500 to-violet-600',
       services: [
-        { id: 'english-lessons', name: 'English Lessons', duration: '60 min', price: '$40' },
-        { id: 'spanish-lessons', name: 'Spanish Lessons', duration: '60 min', price: '$40' },
-        { id: 'french-lessons', name: 'French Lessons', duration: '60 min', price: '$45' },
-        { id: 'conversation-practice', name: 'Conversation Practice', duration: '30 min', price: '$25' }
+        { id: 'english-lessons', name: 'English Lessons', duration: '60 min', price: 'KSh 5,400' },
+        { id: 'swahili-lessons', name: 'Swahili Lessons', duration: '60 min', price: 'KSh 5,400' },
+        { id: 'french-lessons', name: 'French Lessons', duration: '60 min', price: 'KSh 6,000' },
+        { id: 'conversation-practice', name: 'Conversation Practice', duration: '30 min', price: 'KSh 3,400' }
       ]
     },
     {
@@ -63,10 +63,10 @@ export default function EducationPage() {
       description: 'Driving lessons and road test preparation',
       color: 'from-orange-500 to-red-600',
       services: [
-        { id: 'driving-lesson', name: 'Driving Lesson', duration: '60 min', price: '$65' },
-        { id: 'road-test-prep', name: 'Road Test Prep', duration: '90 min', price: '$85' },
-        { id: 'parallel-parking', name: 'Parallel Parking', duration: '45 min', price: '$50' },
-        { id: 'highway-driving', name: 'Highway Driving', duration: '75 min', price: '$75' }
+        { id: 'driving-lesson', name: 'Driving Lesson', duration: '60 min', price: 'KSh 8,700' },
+        { id: 'road-test-prep', name: 'Road Test Prep', duration: '90 min', price: 'KSh 11,400' },
+        { id: 'parallel-parking', name: 'Parallel Parking', duration: '45 min', price: 'KSh 6,700' },
+        { id: 'highway-driving', name: 'Highway Driving', duration: '75 min', price: 'KSh 10,000' }
       ]
     }
   ]

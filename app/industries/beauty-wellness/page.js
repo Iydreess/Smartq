@@ -24,10 +24,10 @@ export default function BeautyWellnessPage() {
       description: 'Professional haircuts, coloring, and styling services',
       color: 'from-pink-500 to-rose-600',
       services: [
-        { id: 'haircut-styling', name: 'Haircut & Styling', duration: '60 min', price: '$65' },
-        { id: 'hair-coloring', name: 'Hair Coloring', duration: '120 min', price: '$120' },
-        { id: 'highlights', name: 'Highlights & Balayage', duration: '150 min', price: '$180' },
-        { id: 'hair-treatment', name: 'Hair Treatment', duration: '45 min', price: '$55' }
+        { id: 'haircut-styling', name: 'Haircut & Styling', duration: '60 min', price: 'KSh 8,500' },
+        { id: 'hair-coloring', name: 'Hair Coloring', duration: '120 min', price: 'KSh 16,000' },
+        { id: 'highlights', name: 'Highlights & Balayage', duration: '150 min', price: 'KSh 24,000' },
+        { id: 'hair-treatment', name: 'Hair Treatment', duration: '45 min', price: 'KSh 7,500' }
       ]
     },
     {
@@ -37,10 +37,10 @@ export default function BeautyWellnessPage() {
       description: 'Manicures, pedicures, and nail art services',
       color: 'from-purple-500 to-pink-600',
       services: [
-        { id: 'manicure', name: 'Classic Manicure', duration: '45 min', price: '$35' },
-        { id: 'pedicure', name: 'Deluxe Pedicure', duration: '60 min', price: '$50' },
-        { id: 'gel-nails', name: 'Gel Nails', duration: '90 min', price: '$65' },
-        { id: 'nail-art', name: 'Nail Art Design', duration: '75 min', price: '$45' }
+        { id: 'manicure', name: 'Classic Manicure', duration: '45 min', price: 'KSh 4,700' },
+        { id: 'pedicure', name: 'Deluxe Pedicure', duration: '60 min', price: 'KSh 6,700' },
+        { id: 'gel-nails', name: 'Gel Nails', duration: '90 min', price: 'KSh 8,700' },
+        { id: 'nail-art', name: 'Nail Art Design', duration: '75 min', price: 'KSh 6,000' }
       ]
     },
     {
@@ -50,10 +50,10 @@ export default function BeautyWellnessPage() {
       description: 'Relaxing massages and spa treatments',
       color: 'from-green-500 to-teal-600',
       services: [
-        { id: 'swedish-massage', name: 'Swedish Massage', duration: '60 min', price: '$80' },
-        { id: 'deep-tissue', name: 'Deep Tissue Massage', duration: '90 min', price: '$110' },
-        { id: 'facial-treatment', name: 'Facial Treatment', duration: '75 min', price: '$95' },
-        { id: 'hot-stone', name: 'Hot Stone Therapy', duration: '90 min', price: '$125' }
+        { id: 'swedish-massage', name: 'Swedish Massage', duration: '60 min', price: 'KSh 10,700' },
+        { id: 'deep-tissue', name: 'Deep Tissue Massage', duration: '90 min', price: 'KSh 14,700' },
+        { id: 'facial-treatment', name: 'Facial Treatment', duration: '75 min', price: 'KSh 12,700' },
+        { id: 'hot-stone', name: 'Hot Stone Therapy', duration: '90 min', price: 'KSh 16,700' }
       ]
     },
     {
@@ -63,10 +63,10 @@ export default function BeautyWellnessPage() {
       description: 'Professional skincare and beauty treatments',
       color: 'from-blue-500 to-cyan-600',
       services: [
-        { id: 'facial-cleansing', name: 'Deep Cleansing Facial', duration: '60 min', price: '$75' },
-        { id: 'anti-aging', name: 'Anti-Aging Treatment', duration: '90 min', price: '$135' },
-        { id: 'acne-treatment', name: 'Acne Treatment', duration: '45 min', price: '$65' },
-        { id: 'skin-consultation', name: 'Skin Consultation', duration: '30 min', price: '$40' }
+        { id: 'facial-cleansing', name: 'Deep Cleansing Facial', duration: '60 min', price: 'KSh 10,000' },
+        { id: 'anti-aging', name: 'Anti-Aging Treatment', duration: '90 min', price: 'KSh 18,000' },
+        { id: 'acne-treatment', name: 'Acne Treatment', duration: '45 min', price: 'KSh 8,700' },
+        { id: 'skin-consultation', name: 'Skin Consultation', duration: '30 min', price: 'KSh 5,400' }
       ]
     }
   ]
