@@ -258,7 +258,11 @@ export default function CustomerBookings() {
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2"
+              onClick={() => window.location.reload()}
+            >
               <RefreshCw className="h-4 w-4" />
               Refresh
             </Button>
@@ -324,29 +328,50 @@ export default function CustomerBookings() {
                   {/* Actions */}
                   <div className="flex gap-2 pt-2">
                     {booking.canReschedule && (
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => alert(`Reschedule booking ${booking.bookingRef}`)}
+                      >
                         <Edit className="h-3 w-3 mr-1" />
                         Reschedule
                       </Button>
                     )}
                     {booking.canCancel && (
-                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => confirm(`Cancel booking ${booking.bookingRef}?`) && alert('Booking cancelled')}
+                      >
                         <Trash2 className="h-3 w-3 mr-1" />
                         Cancel
                       </Button>
                     )}
                     {booking.status === 'completed' && !booking.rating && (
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => alert(`Rate ${booking.service}`)}
+                      >
                         <Star className="h-3 w-3 mr-1" />
                         Rate Service
                       </Button>
                     )}
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => alert(`View details for ${booking.bookingRef}`)}
+                    >
                       <Eye className="h-3 w-3 mr-1" />
                       View Details
                     </Button>
                     {booking.status === 'completed' && (
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => alert(`Rebook ${booking.service}`)}
+                      >
                         <RefreshCw className="h-3 w-3 mr-1" />
                         Book Again
                       </Button>

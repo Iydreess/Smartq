@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/u
 import { 
   Bell, Mail, MessageSquare, Calendar, AlertTriangle,
   Check, X, Eye, Archive, Star, Clock, User,
-  Filter, Search, MoreVertical, Trash2, MarkAsUnread,
+  Filter, Search, MoreVertical, Trash2,
   CheckCircle, AlertCircle, Info, Zap, Heart,
   Settings, Download, Share2, BookOpen, CreditCard
 } from 'lucide-react'
@@ -501,7 +501,7 @@ export default function CustomerNotifications() {
                       title={notification.isRead ? "Mark as unread" : "Mark as read"}
                     >
                       {notification.isRead ? (
-                        <MarkAsUnread className="h-3 w-3 text-gray-500" />
+                        <Mail className="h-3 w-3 text-gray-500" />
                       ) : (
                         <Check className="h-3 w-3 text-gray-500" />
                       )}
@@ -523,7 +523,7 @@ export default function CustomerNotifications() {
       {/* Load More */}
       {filteredNotifications.length > 0 && (
         <div className="text-center">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={() => alert('Loading more notifications...')}>
             Load More Notifications
           </Button>
         </div>

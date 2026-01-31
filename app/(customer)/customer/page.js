@@ -116,7 +116,10 @@ export default function CustomerDashboard() {
             <p className="text-blue-100">You have {customerData.upcomingBookings} upcoming appointments and {customerData.loyaltyPoints} loyalty points to redeem.</p>
           </div>
           <Link href="/customer/services">
-            <Button className="bg-white text-blue-600 hover:bg-blue-50">
+            <Button 
+              className="bg-white text-blue-600 hover:bg-blue-50"
+              onClick={() => console.log('Navigating to services')}
+            >
               Book New Service
             </Button>
           </Link>
@@ -183,7 +186,12 @@ export default function CustomerDashboard() {
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
                         {appointment.status}
                       </span>
-                      <Button size="sm" variant="outline" className="text-xs">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-xs"
+                        onClick={() => alert(`Reschedule ${appointment.service}`)}
+                      >
                         Reschedule
                       </Button>
                     </div>
@@ -298,7 +306,11 @@ export default function CustomerDashboard() {
                       <p className="font-medium text-yellow-800">10% Off Next Service</p>
                       <p className="text-sm text-yellow-600">500 points</p>
                     </div>
-                    <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                    <Button 
+                      size="sm" 
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                      onClick={() => alert('Redeeming 10% Off reward')}
+                    >
                       Redeem
                     </Button>
                   </div>
@@ -309,7 +321,11 @@ export default function CustomerDashboard() {
                       <p className="font-medium text-blue-800">Priority Queue Access</p>
                       <p className="text-sm text-blue-600">1000 points</p>
                     </div>
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    <Button 
+                      size="sm" 
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => alert('Redeeming Priority Queue Access')}
+                    >
                       Redeem
                     </Button>
                   </div>

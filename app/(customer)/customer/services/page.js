@@ -270,7 +270,12 @@ export default function CustomerServices() {
                       <span>{service.duration} min</span>
                     </div>
                   </div>
-                  <Button className="w-full">Book Now</Button>
+                  <Button 
+                    className="w-full"
+                    onClick={() => alert(`Booking ${service.name}`)}
+                  >
+                    Book Now
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -369,13 +374,29 @@ export default function CustomerServices() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
-                  <Button className="flex-1" disabled={service.availability === 'seasonal'}>
+                  <Button 
+                    className="flex-1" 
+                    disabled={service.availability === 'seasonal'}
+                    onClick={() => !service.availability === 'seasonal' && alert(`Booking ${service.name}`)}
+                  >
                     {service.availability === 'seasonal' ? 'Seasonal' : 'Book Now'}
                   </Button>
-                  <Button variant="outline" size="sm" className="px-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="px-3"
+                    onClick={() => alert(`View details for ${service.name}`)}
+                    title="View details"
+                  >
                     <Eye className="h-3 w-3" />
                   </Button>
-                  <Button variant="outline" size="sm" className="px-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="px-3"
+                    onClick={() => alert(`Added ${service.name} to favorites`)}
+                    title="Add to favorites"
+                  >
                     <Heart className="h-3 w-3" />
                   </Button>
                 </div>

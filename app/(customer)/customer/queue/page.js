@@ -223,15 +223,15 @@ export default function CustomerQueue() {
             <div className="border-t pt-4">
               <h4 className="font-medium text-secondary-900 mb-2">Queue Actions</h4>
               <div className="grid grid-cols-1 gap-2">
-                <Button variant="outline" className="justify-start">
+                <Button variant="outline" className="justify-start" onClick={() => alert('Notifications enabled')}>
                   <Bell className="h-4 w-4 mr-2" />
                   Enable Notifications
                 </Button>
-                <Button variant="outline" className="justify-start">
+                <Button variant="outline" className="justify-start" onClick={() => alert('Contacting staff...')}>
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Contact Staff
                 </Button>
-                <Button variant="outline" className="justify-start text-red-600 hover:text-red-700">
+                <Button variant="outline" className="justify-start text-red-600 hover:text-red-700" onClick={() => { if (confirm('Are you sure you want to leave the queue?')) alert('Left queue') }}>
                   <Eye className="h-4 w-4 mr-2" />
                   Leave Queue
                 </Button>
@@ -293,7 +293,7 @@ export default function CustomerQueue() {
                 <span>Notifications</span>
               </Button>
             </Link>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2" onClick={() => alert('You will be called when your turn arrives')}>
               <Phone className="h-5 w-5" />
               <span>Call When Ready</span>
             </Button>
@@ -303,7 +303,7 @@ export default function CustomerQueue() {
                 <span>Chat Support</span>
               </Button>
             </Link>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2 text-red-600 hover:text-red-700">
+            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2 text-red-600 hover:text-red-700" onClick={() => { if (confirm('Are you sure you want to leave the queue?')) alert('Left queue') }}>
               <Eye className="h-5 w-5" />
               <span>Leave Queue</span>
             </Button>

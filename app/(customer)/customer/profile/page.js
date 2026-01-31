@@ -541,19 +541,19 @@ export default function CustomerProfile() {
                 <div className="space-y-4">
                   <h3 className="font-medium text-secondary-900">Security Actions</h3>
                   <div className="space-y-3">
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" className="w-full justify-start" onClick={() => alert('Navigate to change password page')}>
                       <Lock className="h-4 w-4 mr-2" />
                       Change Password
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" className="w-full justify-start" onClick={() => alert('Enable two-factor authentication')}>
                       <Shield className="h-4 w-4 mr-2" />
                       Enable Two-Factor Auth
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" className="w-full justify-start" onClick={() => alert('Downloading your data...')}>
                       <Download className="h-4 w-4 mr-2" />
                       Download My Data
                     </Button>
-                    <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700">
+                    <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700" onClick={() => { if (confirm('This action cannot be undone. Delete your account?')) alert('Account deleted') }}>
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete Account
                     </Button>
