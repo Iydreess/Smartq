@@ -196,15 +196,26 @@ export default function StaffPage() {
           <p className="text-secondary-600">Manage your team, schedules, and performance</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Export staff data functionality coming soon!')}
+          >
             <Download className="h-4 w-4" />
             Export
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Schedule management coming soon!')}
+          >
             <Calendar className="h-4 w-4" />
             Schedule
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => alert('Add staff form coming soon!')}
+          >
             <UserPlus className="h-4 w-4" />
             Add Staff
           </Button>
@@ -402,15 +413,30 @@ export default function StaffPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`Edit ${member.name} details`)}
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`Manage ${member.name} schedule`)}
+                  >
                     <Calendar className="h-3 w-3 mr-1" />
                     Schedule
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`View ${member.name} performance`)}
+                  >
                     <BarChart3 className="h-3 w-3 mr-1" />
                     Performance
                   </Button>
@@ -428,19 +454,35 @@ export default function StaffPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Add new staff functionality coming soon!')}
+            >
               <UserPlus className="h-5 w-5" />
               <span>Add New Staff</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Manage schedules functionality coming soon!')}
+            >
               <Calendar className="h-5 w-5" />
               <span>Manage Schedules</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Performance review functionality coming soon!')}
+            >
               <Award className="h-5 w-5" />
               <span>Performance Review</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Staff settings functionality coming soon!')}
+            >
               <Settings className="h-5 w-5" />
               <span>Staff Settings</span>
             </Button>

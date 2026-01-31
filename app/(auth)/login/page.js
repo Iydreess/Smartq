@@ -121,12 +121,79 @@ export default function SignInPage() {
       </form>
 
       {/* Demo Credentials */}
-      <div className="mt-6 p-4 bg-secondary-50 border border-secondary-200 rounded-lg">
-        <p className="text-xs font-semibold text-secondary-700 mb-2">Demo Credentials:</p>
-        <div className="space-y-1 text-xs text-secondary-600">
-          <p><strong>Admin:</strong> admin@smartq.com / admin123</p>
-          <p><strong>Business:</strong> business@smartq.com / business123</p>
-          <p><strong>Customer:</strong> customer@smartq.com / customer123</p>
+      <div className="mt-6">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">Quick Demo Login</span>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3">
+          {/* Admin Demo */}
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({ ...formData, email: 'admin@smartq.com', password: 'admin123' })
+              toast.success('Admin credentials filled!')
+            }}
+            className="flex items-center p-3 border-2 border-orange-200 bg-orange-50 rounded-lg hover:border-orange-400 hover:bg-orange-100 transition-all group"
+          >
+            <div className="flex items-center flex-1">
+              <span className="text-2xl mr-3">⚡</span>
+              <div className="text-left">
+                <div className="text-sm font-semibold text-gray-900">Login as Admin</div>
+                <div className="text-xs text-gray-600">admin@smartq.com</div>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-orange-600 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Business Demo */}
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({ ...formData, email: 'business@smartq.com', password: 'business123' })
+              toast.success('Business credentials filled!')
+            }}
+            className="flex items-center p-3 border-2 border-purple-200 bg-purple-50 rounded-lg hover:border-purple-400 hover:bg-purple-100 transition-all group"
+          >
+            <div className="flex items-center flex-1">
+              <span className="text-2xl mr-3">🏢</span>
+              <div className="text-left">
+                <div className="text-sm font-semibold text-gray-900">Login as Business</div>
+                <div className="text-xs text-gray-600">business@smartq.com</div>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-purple-600 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Customer Demo */}
+          <button
+            type="button"
+            onClick={() => {
+              setFormData({ ...formData, email: 'customer@smartq.com', password: 'customer123' })
+              toast.success('Customer credentials filled!')
+            }}
+            className="flex items-center p-3 border-2 border-blue-200 bg-blue-50 rounded-lg hover:border-blue-400 hover:bg-blue-100 transition-all group"
+          >
+            <div className="flex items-center flex-1">
+              <span className="text-2xl mr-3">👤</span>
+              <div className="text-left">
+                <div className="text-sm font-semibold text-gray-900">Login as Customer</div>
+                <div className="text-xs text-gray-600">customer@smartq.com</div>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-blue-600 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
     </AuthLayout>

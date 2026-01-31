@@ -97,11 +97,19 @@ export default function AnalyticsPage() {
             <option value="90d">Last 90 days</option>
             <option value="1y">Last year</option>
           </select>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => window.location.reload()}
+          >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Export report functionality coming soon!')}
+          >
             <Download className="h-4 w-4" />
             Export Report
           </Button>
@@ -390,19 +398,35 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Custom reports functionality coming soon!')}
+            >
               <BarChart3 className="h-5 w-5" />
               <span>Custom Reports</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Forecasting functionality coming soon!')}
+            >
               <TrendingUp className="h-5 w-5" />
               <span>Forecasting</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Benchmarks functionality coming soon!')}
+            >
               <Award className="h-5 w-5" />
               <span>Benchmarks</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Export data functionality coming soon!')}
+            >
               <Download className="h-5 w-5" />
               <span>Export Data</span>
             </Button>

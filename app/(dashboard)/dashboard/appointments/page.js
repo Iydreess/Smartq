@@ -123,15 +123,26 @@ export default function AppointmentsPage() {
           <p className="text-secondary-600">Manage all your business appointments and scheduling</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Export appointments functionality coming soon!')}
+          >
             <Download className="h-4 w-4" />
             Export
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => window.location.reload()}
+          >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => alert('New appointment form coming soon!')}
+          >
             <Plus className="h-4 w-4" />
             New Appointment
           </Button>
@@ -282,13 +293,31 @@ export default function AppointmentsPage() {
                         {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
                       </span>
                       <div className="flex gap-1">
-                        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => alert(`Edit appointment for ${appointment.customerName}`)}
+                          title="Edit appointment"
+                        >
                           <Edit className="h-3 w-3" />
                         </Button>
-                        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => alert(`Calling ${appointment.customerName}...`)}
+                          title="Call customer"
+                        >
                           <Phone className="h-3 w-3" />
                         </Button>
-                        <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => alert('More options coming soon!')}
+                          title="More options"
+                        >
                           <MoreHorizontal className="h-3 w-3" />
                         </Button>
                       </div>
@@ -315,19 +344,35 @@ export default function AppointmentsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Schedule appointment functionality coming soon!')}
+            >
               <Plus className="h-5 w-5" />
               <span>Schedule Appointment</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Calendar view coming soon!')}
+            >
               <Calendar className="h-5 w-5" />
               <span>View Calendar</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Batch reschedule functionality coming soon!')}
+            >
               <RefreshCw className="h-5 w-5" />
               <span>Reschedule Batch</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Export report functionality coming soon!')}
+            >
               <Download className="h-5 w-5" />
               <span>Export Report</span>
             </Button>

@@ -102,15 +102,28 @@ export default function QueuesPage() {
           <p className="text-secondary-600">Monitor and control all active queues in real-time</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Filter functionality coming soon!')}
+          >
             <Filter className="h-4 w-4" />
             Filter Queues
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => {
+              window.location.reload()
+            }}
+          >
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => alert('Queue settings coming soon!')}
+          >
             <Settings className="h-4 w-4" />
             Queue Settings
           </Button>
@@ -215,10 +228,22 @@ export default function QueuesPage() {
                       <p className="text-sm text-gray-600">Waiting: {queue.nextInLine.waitTime}</p>
                     </div>
                     <div className="flex gap-1">
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => alert(`Calling ${queue.nextInLine.name}...`)}
+                        title="Call customer"
+                      >
                         <Phone className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => alert(`Sending message to ${queue.nextInLine.name}...`)}
+                        title="Send message"
+                      >
                         <MessageSquare className="h-3 w-3" />
                       </Button>
                     </div>
@@ -303,15 +328,27 @@ export default function QueuesPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Create New Queue functionality coming soon!')}
+            >
               <Users className="h-5 w-5" />
               <span>Create New Queue</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Schedule Appointment functionality coming soon!')}
+            >
               <Calendar className="h-5 w-5" />
               <span>Schedule Appointment</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Send Notifications functionality coming soon!')}
+            >
               <MessageSquare className="h-5 w-5" />
               <span>Send Notifications</span>
             </Button>

@@ -433,15 +433,26 @@ export default function ServicesPage() {
           <p className="text-secondary-600">Manage your service catalog, pricing, and availability</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Import services functionality coming soon!')}
+          >
             <Upload className="h-4 w-4" />
             Import
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Export services functionality coming soon!')}
+          >
             <Download className="h-4 w-4" />
             Export
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => alert('Add service form coming soon!')}
+          >
             <Plus className="h-4 w-4" />
             Add Service
           </Button>
@@ -575,7 +586,13 @@ export default function ServicesPage() {
                     <p className="text-sm text-gray-600 mb-2">{service.category}</p>
                     <p className="text-xs text-gray-500 line-clamp-2">{service.description}</p>
                   </div>
-                  <Button size="sm" variant="outline" className="h-8 w-8 p-0 ml-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 w-8 p-0 ml-2"
+                    onClick={() => alert(`More options for ${service.name}`)}
+                    title="More options"
+                  >
                     <MoreHorizontal className="h-3 w-3" />
                   </Button>
                 </div>
@@ -653,15 +670,30 @@ export default function ServicesPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2 border-t">
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`Edit ${service.name}`)}
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`Clone ${service.name}`)}
+                  >
                     <Copy className="h-3 w-3 mr-1" />
                     Clone
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`View ${service.name} statistics`)}
+                  >
                     <BarChart3 className="h-3 w-3 mr-1" />
                     Stats
                   </Button>
@@ -679,19 +711,35 @@ export default function ServicesPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Add new service functionality coming soon!')}
+            >
               <Plus className="h-5 w-5" />
               <span>Add New Service</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Bulk pricing functionality coming soon!')}
+            >
               <Tag className="h-5 w-5" />
               <span>Bulk Pricing</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Schedule settings functionality coming soon!')}
+            >
               <Calendar className="h-5 w-5" />
               <span>Schedule Settings</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Service settings functionality coming soon!')}
+            >
               <Settings className="h-5 w-5" />
               <span>Service Settings</span>
             </Button>

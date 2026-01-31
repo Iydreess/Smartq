@@ -139,15 +139,26 @@ export default function CustomersPage() {
           <p className="text-secondary-600">Manage your customer database and relationships</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Export customers functionality coming soon!')}
+          >
             <Download className="h-4 w-4" />
             Export
           </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Send campaign functionality coming soon!')}
+          >
             <Send className="h-4 w-4" />
             Send Campaign
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => alert('Add customer form coming soon!')}
+          >
             <UserPlus className="h-4 w-4" />
             Add Customer
           </Button>
@@ -257,7 +268,13 @@ export default function CustomersPage() {
                       </div>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="h-8 w-8 p-0"
+                    onClick={() => alert(`View details for ${customer.name}`)}
+                    title="View customer details"
+                  >
                     <Eye className="h-3 w-3" />
                   </Button>
                 </div>
@@ -309,15 +326,30 @@ export default function CustomersPage() {
 
                 {/* Quick Actions */}
                 <div className="flex gap-2 pt-2 border-t">
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`Edit ${customer.name}`)}
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`Contact ${customer.name}`)}
+                  >
                     <MessageSquare className="h-3 w-3 mr-1" />
                     Contact
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => alert(`Book appointment for ${customer.name}`)}
+                  >
                     <Calendar className="h-3 w-3 mr-1" />
                     Book
                   </Button>
@@ -335,19 +367,35 @@ export default function CustomersPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Add new customer functionality coming soon!')}
+            >
               <UserPlus className="h-5 w-5" />
               <span>Add New Customer</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Send newsletter functionality coming soon!')}
+            >
               <Send className="h-5 w-5" />
               <span>Send Newsletter</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Loyalty rewards functionality coming soon!')}
+            >
               <Gift className="h-5 w-5" />
               <span>Loyalty Rewards</span>
             </Button>
-            <Button variant="outline" className="h-16 flex flex-col items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              className="h-16 flex flex-col items-center justify-center gap-2"
+              onClick={() => alert('Export data functionality coming soon!')}
+            >
               <Download className="h-5 w-5" />
               <span>Export Data</span>
             </Button>

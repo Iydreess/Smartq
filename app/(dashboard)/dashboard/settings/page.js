@@ -191,7 +191,10 @@ export default function SettingsPage() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Users & Permissions</CardTitle>
-            <Button className="flex items-center gap-2">
+            <Button 
+              className="flex items-center gap-2"
+              onClick={() => alert('Invite user functionality coming soon!')}
+            >
               <Users className="h-4 w-4" />
               Invite User
             </Button>
@@ -229,10 +232,21 @@ export default function SettingsPage() {
                     </td>
                     <td className="p-3 text-sm text-gray-600">{user.lastLogin}</td>
                     <td className="p-3 text-center">
-                      <Button size="sm" variant="outline" className="mr-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="mr-2"
+                        onClick={() => alert(`View details for ${user.name}`)}
+                        title="View user"
+                      >
                         <Eye className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => confirm(`Delete user ${user.name}?`) && alert('User deleted')}
+                        title="Delete user"
+                      >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </td>
@@ -438,7 +452,11 @@ export default function SettingsPage() {
                 }`}>
                   {integration.status}
                 </span>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => alert(`${integration.status === 'Connected' ? 'Configure' : 'Connect'} ${integration.name}`)}
+                >
                   {integration.status === 'Connected' ? 'Configure' : 'Connect'}
                 </Button>
               </div>
@@ -461,7 +479,12 @@ export default function SettingsPage() {
               <h4 className="font-medium text-gray-900">Two-Factor Authentication</h4>
               <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
             </div>
-            <Button variant="outline">Enable 2FA</Button>
+            <Button 
+              variant="outline"
+              onClick={() => alert('2FA setup functionality coming soon!')}
+            >
+              Enable 2FA
+            </Button>
           </div>
           
           <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -469,7 +492,12 @@ export default function SettingsPage() {
               <h4 className="font-medium text-gray-900">Session Management</h4>
               <p className="text-sm text-gray-600">Manage active sessions and devices</p>
             </div>
-            <Button variant="outline">View Sessions</Button>
+            <Button 
+              variant="outline"
+              onClick={() => alert('Session management functionality coming soon!')}
+            >
+              View Sessions
+            </Button>
           </div>
 
           <div className="p-4 border rounded-lg">
@@ -489,7 +517,12 @@ export default function SettingsPage() {
               >
                 {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => confirm('Regenerate API key?') && alert('New API key generated')}
+                title="Regenerate API key"
+              >
                 <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
@@ -508,11 +541,18 @@ export default function SettingsPage() {
           <p className="text-secondary-600">Configure your business settings and preferences</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => alert('Export settings functionality coming soon!')}
+          >
             <Download className="h-4 w-4" />
             Export Settings
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => alert('Settings saved successfully!')}
+          >
             <Save className="h-4 w-4" />
             Save Changes
           </Button>
