@@ -1,20 +1,75 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { MainLayout } from '@/components/layout/MainLayout'
-import { Button } from '@/components/ui'
+import { Button, Calendar, TimeSlotPicker, Card } from '@/components/ui'
 import Link from 'next/link'
 import { 
   Heart, Stethoscope, Brain, Eye, Users, Star, Clock, 
-  Calendar, MapPin, Phone, Mail, ChevronRight, Award
+  Calendar as CalendarIcon, MapPin, Phone, Mail, ChevronRight, Award
 } from 'lucide-react'
 
 export default function HealthcarePage() {
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedService, setSelectedService] = useState(null)
   const [selectedPersonnel, setSelectedPersonnel] = useState(null)
-  const [selectedDay, setSelectedDay] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
+
+  // Disable Sundays and past dates
+  const disabledDates = useMemo(() => {
+    const dates = []
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    // Add Sundays for next 60 days
+    for (let i = 0; i < 60; i++) {
+      const date = new Date(today)
+      date.setDate(date.getDate() + i)
+      if (date.getDay() === 0) {
+        dates.push(date.toDateString())
+      }
+    }
+    return dates
+  }, [])
+
+  // Generate available time slots based on selected date
+  const availableTimeSlots = useMemo(() => {
+    if (!selectedDate) return []
+    
+    const slots = []
+    const date = new Date(selectedDate)
+    const dayOfWeek = date.getDay()
+    
+    // Weekend has different hours (9 AM - 5 PM)
+    // Weekday hours: 8 AM - 8 PM
+    const startHour = dayOfWeek === 6 ? 9 : 8
+    const endHour = dayOfWeek === 6 ? 17 : 20
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute of [0, 30]) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+        
+        // Simulate availability - some random slots are booked
+        const isBooked = Math.random() > 0.7
+        const spotsLeft = isBooked ? 0 : Math.floor(Math.random() * 10) + 1
+        
+        // Determine period based on hour
+        let period = 'morning'
+        if (hour >= 12 && hour < 17) period = 'afternoon'
+        else if (hour >= 17) period = 'evening'
+        
+        slots.push({
+          time,
+          available: !isBooked,
+          spotsLeft,
+          period
+        })
+      }
+    }
+    
+    return slots
+  }, [selectedDate])
 
   const categories = [
     {
@@ -170,16 +225,7 @@ export default function HealthcarePage() {
     ]
   }
 
-  const timeSlots = {
-    Monday: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'],
-    Tuesday: ['8:00 AM', '9:30 AM', '11:00 AM', '1:00 PM', '2:30 PM', '4:00 PM'],
-    Wednesday: ['8:30 AM', '10:00 AM', '11:30 AM', '1:30 PM', '3:00 PM', '4:30 PM'],
-    Thursday: ['8:00 AM', '9:00 AM', '10:30 AM', '12:00 PM', '2:00 PM', '3:30 PM'],
-    Friday: ['8:00 AM', '9:30 AM', '11:00 AM', '1:00 PM', '2:30 PM'],
-    Saturday: ['9:00 AM', '10:00 AM', '11:00 AM', '1:00 PM'],
-    Sunday: ['Closed']
-  }
-
+  // Generate time slots based on selected date
   const handleBooking = () => {
     const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
     const selectedServiceData = selectedCategoryData?.services.find(service => service.id === selectedService)
@@ -195,7 +241,12 @@ export default function HealthcarePage() {
       category: selectedCategoryData?.name || 'Healthcare',
       service: selectedServiceData.name,
       personnel: selectedPersonnelData.name,
-      day: selectedDay || '',
+      date: selectedDate ? selectedDate.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }) : '',
       time: selectedTime || '',
       duration: selectedServiceData.duration || '45 min',
       price: selectedServiceData.price || 'Contact for pricing'
@@ -374,65 +425,103 @@ export default function HealthcarePage() {
         <section className="py-16 bg-gradient-to-br from-secondary-50 to-blue-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h3 className="text-2xl font-bold text-center text-secondary-900 mb-8">
-              Select Day & Time
+              Select Date & Time
             </h3>
             
-            <div className="bg-white rounded-2xl shadow-soft p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-                {Object.entries(timeSlots).map(([day, slots]) => (
-                  <div key={day} className="text-center">
-                    <h4 className="font-semibold text-secondary-900 mb-4 pb-2 border-b border-secondary-200">
-                      {day}
-                    </h4>
-                    <div className="space-y-2">
-                      {slots[0] === 'Closed' ? (
-                        <div className="text-secondary-400 text-sm py-2">Closed</div>
-                      ) : (
-                        slots.map((time) => (
-                          <button
-                            key={`${day}-${time}`}
-                            onClick={() => {
-                              setSelectedDay(day)
-                              setSelectedTime(time)
-                            }}
-                            className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                              selectedDay === day && selectedTime === time
-                                ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-md'
-                                : 'bg-secondary-50 text-secondary-700 hover:bg-blue-100 hover:text-blue-700'
-                            }`}
-                          >
-                            {time}
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Calendar Section */}
+              <div className="lg:col-span-8">
+                <Card className="p-6">
+                  <h4 className="text-lg font-semibold text-secondary-900 mb-4">Choose Your Date</h4>
+                  <Calendar
+                    selectedDate={selectedDate}
+                    onDateSelect={setSelectedDate}
+                    disabledDates={disabledDates}
+                    bookedDates={[]}
+                    minDate={new Date()}
+                    maxDate={new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)}
+                  />
+                </Card>
 
-      {/* Book Now Button */}
-      {selectedTime && (
-        <section className="py-16 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-8 border border-blue-200">
-              <h3 className="text-2xl font-bold text-secondary-900 mb-4">
-                Ready to Book Your Appointment?
-              </h3>
-              <p className="text-secondary-600 mb-6">
-                You&apos;ve selected an appointment on {selectedDay} at {selectedTime}
-              </p>
-              <Button 
-                onClick={handleBooking}
-                size="lg" 
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-              >
-                Book Now
-                <ChevronRight className="ml-2 w-5 h-5" />
-              </Button>
+                {/* Time Slots */}
+                {selectedDate && (
+                  <Card className="p-6 mt-6">
+                    <h4 className="text-lg font-semibold text-secondary-900 mb-4">Choose Your Time</h4>
+                    <TimeSlotPicker
+                      timeSlots={availableTimeSlots}
+                      selectedTime={selectedTime}
+                      onTimeSelect={setSelectedTime}
+                    />
+                  </Card>
+                )}
+              </div>
+
+              {/* Summary Sidebar */}
+              <div className="lg:col-span-4">
+                <Card className="p-6 sticky top-6">
+                  <h4 className="text-lg font-semibold text-secondary-900 mb-4">Appointment Summary</h4>
+                  
+                  <div className="space-y-4">
+                    {selectedCategory && (
+                      <div>
+                        <p className="text-sm text-secondary-600 mb-1">Category</p>
+                        <p className="font-medium text-secondary-900">{selectedCategory.name}</p>
+                      </div>
+                    )}
+                    
+                    {selectedService && (
+                      <div>
+                        <p className="text-sm text-secondary-600 mb-1">Service</p>
+                        <p className="font-medium text-secondary-900">{selectedService.name}</p>
+                        <p className="text-sm text-secondary-500 mt-1">
+                          {selectedService.duration} • ${selectedService.price}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {selectedPersonnel && (
+                      <div>
+                        <p className="text-sm text-secondary-600 mb-1">Healthcare Provider</p>
+                        <p className="font-medium text-secondary-900">{selectedPersonnel.name}</p>
+                        <p className="text-sm text-secondary-500">{selectedPersonnel.role}</p>
+                      </div>
+                    )}
+                    
+                    {selectedDate && (
+                      <div>
+                        <p className="text-sm text-secondary-600 mb-1">Date</p>
+                        <p className="font-medium text-secondary-900">
+                          {selectedDate.toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {selectedTime && (
+                      <div>
+                        <p className="text-sm text-secondary-600 mb-1">Time</p>
+                        <p className="font-medium text-secondary-900">{selectedTime}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedTime && (
+                    <div className="mt-6 pt-6 border-t border-secondary-200">
+                      <Button
+                        onClick={handleBooking}
+                        className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                      >
+                        <CalendarIcon className="w-5 h-5 mr-2" />
+                        Confirm Booking
+                      </Button>
+                    </div>
+                  )}
+                </Card>
+              </div>
             </div>
           </div>
         </section>

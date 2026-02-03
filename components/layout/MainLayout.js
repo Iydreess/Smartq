@@ -126,13 +126,15 @@ export function MainLayout({ children }) {
               <Button 
                 variant="outline" 
                 className="px-6 py-2.5 text-sm font-semibold rounded-2xl transition-all duration-300 hover:scale-110 hover:shadow-lg border-2 border-primary-300 text-primary-700 hover:border-primary-500 hover:bg-primary-50 hover:text-primary-800"
+                asChild
               >
-                Sign In
+                <Link href="/login">Sign In</Link>
               </Button>
               <Button 
                 className="btn-primary-enhanced animate-pulse-glow"
+                asChild
               >
-                Get Started
+                <Link href="/signup">Get Started</Link>
               </Button>
             </div>
 
@@ -206,15 +208,15 @@ export function MainLayout({ children }) {
                 <Button 
                   variant="outline" 
                   className="w-full transition-all duration-300 hover:scale-105 hover:shadow-md border-secondary-300 hover:border-primary-400"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  asChild
                 >
-                  Sign In
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>Sign In</Link>
                 </Button>
                 <Button 
                   className="w-full bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  asChild
                 >
-                  Get Started
+                  <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>Get Started</Link>
                 </Button>
               </div>
             </div>

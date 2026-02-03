@@ -1,4 +1,5 @@
 import { MainLayout } from '@/components/layout/MainLayout'
+import { Button } from '@/components/ui'
 import Link from 'next/link'
 import { 
   Scissors, Dumbbell, Heart, Briefcase, 
@@ -227,12 +228,12 @@ export default function IndustriesPage() {
             Join thousands of Kenyan businesses already using Smartq to deliver exceptional customer experiences.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-primary-700 rounded-lg font-semibold hover:bg-primary-50 transition-colors">
-              Get Industry Demo
-            </button>
-            <button className="px-8 py-4 border border-white text-white rounded-lg font-semibold hover:bg-white hover:text-primary-700 transition-colors">
-              Contact Sales
-            </button>
+            <Button size="lg" variant="secondary" className="bg-white text-primary-700 hover:bg-primary-50" asChild>
+              <Link href="/demo">Get Industry Demo</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-700" asChild>
+              <Link href="/booking">Contact Sales</Link>
+            </Button>
           </div>
         </div>
       </section>

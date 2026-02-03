@@ -59,7 +59,7 @@ export default function CustomerDashboard() {
       message: 'Strategy Consulting appointment confirmed',
       date: '2025-09-28',
       icon: CheckCircle,
-      color: 'text-green-600'
+      color: 'text-success-600'
     },
     {
       id: 2,
@@ -67,7 +67,7 @@ export default function CustomerDashboard() {
       message: 'Earned 50 loyalty points',
       date: '2025-09-25',
       icon: Award,
-      color: 'text-purple-600'
+      color: 'text-primary-600'
     },
     {
       id: 3,
@@ -75,7 +75,7 @@ export default function CustomerDashboard() {
       message: 'Appointment reminder sent',
       date: '2025-09-24',
       icon: Bell,
-      color: 'text-blue-600'
+      color: 'text-primary-600'
     }
   ]
 
@@ -84,40 +84,40 @@ export default function CustomerDashboard() {
       label: 'Total Bookings',
       value: customerData.totalBookings,
       icon: Calendar,
-      color: 'bg-blue-500'
+      color: 'bg-primary-500'
     },
     {
       label: 'Loyalty Points',
       value: customerData.loyaltyPoints,
       icon: Award,
-      color: 'bg-purple-500'
+      color: 'bg-primary-600'
     },
     {
       label: 'Upcoming',
       value: customerData.upcomingBookings,
       icon: Clock,
-      color: 'bg-green-500'
+      color: 'bg-success-500'
     },
     {
       label: 'Member Since',
       value: customerData.memberSince,
       icon: User,
-      color: 'bg-orange-500'
+      color: 'bg-primary-400'
     }
   ]
 
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 text-white">
+      <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl p-6 text-white">
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold mb-2">Welcome back, {customerData.name}! 👋</h1>
-            <p className="text-blue-100">You have {customerData.upcomingBookings} upcoming appointments and {customerData.loyaltyPoints} loyalty points to redeem.</p>
+            <p className="text-primary-100">You have {customerData.upcomingBookings} upcoming appointments and {customerData.loyaltyPoints} loyalty points to redeem.</p>
           </div>
           <Link href="/customer/services">
             <Button 
-              className="bg-white text-blue-600 hover:bg-blue-50"
+              className="bg-white text-primary-600 hover:bg-primary-50"
               onClick={() => console.log('Navigating to services')}
             >
               Book New Service
@@ -136,8 +136,8 @@ export default function CustomerDashboard() {
                   <stat.icon className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">{stat.label}</p>
-                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-secondary-600">{stat.label}</p>
+                  <p className="text-xl font-bold text-secondary-900">{stat.value}</p>
                 </div>
               </div>
             </CardContent>
@@ -162,12 +162,12 @@ export default function CustomerDashboard() {
           <CardContent>
             <div className="space-y-4">
               {upcomingAppointments.map((appointment) => (
-                <div key={appointment.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div key={appointment.id} className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{appointment.service}</h3>
-                      <p className="text-sm text-gray-600">with {appointment.staff}</p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                      <h3 className="font-semibold text-secondary-900">{appointment.service}</h3>
+                      <p className="text-sm text-secondary-600">with {appointment.staff}</p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-secondary-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           <span>{appointment.date}</span>
@@ -201,8 +201,8 @@ export default function CustomerDashboard() {
               
               {upcomingAppointments.length === 0 && (
                 <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No upcoming appointments</p>
+                  <Calendar className="h-12 w-12 text-secondary-300 mx-auto mb-4" />
+                  <p className="text-secondary-500">No upcoming appointments</p>
                   <Link href="/customer/services">
                     <Button className="mt-2">Book Your First Service</Button>
                   </Link>
@@ -225,8 +225,8 @@ export default function CustomerDashboard() {
                     <activity.icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-500">{activity.date}</p>
+                    <p className="text-sm font-medium text-secondary-900">{activity.message}</p>
+                    <p className="text-xs text-secondary-500">{activity.date}</p>
                   </div>
                 </div>
               ))}
@@ -279,51 +279,51 @@ export default function CustomerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4">
+              <div className="bg-gradient-to-r from-primary-100 to-primary-50 rounded-lg p-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm text-gray-600">Current Points</p>
-                    <p className="text-2xl font-bold text-purple-600">{customerData.loyaltyPoints}</p>
+                    <p className="text-sm text-secondary-600">Current Points</p>
+                    <p className="text-2xl font-bold text-primary-600">{customerData.loyaltyPoints}</p>
                   </div>
-                  <Gift className="h-8 w-8 text-purple-600" />
+                  <Gift className="h-8 w-8 text-primary-600" />
                 </div>
                 <div className="mt-3 bg-white rounded p-2">
                   <div className="flex justify-between text-sm">
                     <span>Progress to next reward</span>
                     <span>250 points to go</span>
                   </div>
-                  <div className="mt-1 w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-600 h-2 rounded-full" style={{ width: '80%' }}></div>
+                  <div className="mt-1 w-full bg-secondary-200 rounded-full h-2">
+                    <div className="bg-primary-600 h-2 rounded-full" style={{ width: '80%' }}></div>
                   </div>
                 </div>
               </div>
               
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-900">Available Rewards</h4>
-                <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                <h4 className="font-medium text-secondary-900">Available Rewards</h4>
+                <div className="bg-warning-50 border border-warning-200 rounded p-3">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium text-yellow-800">10% Off Next Service</p>
-                      <p className="text-sm text-yellow-600">500 points</p>
+                      <p className="font-medium text-warning-800">10% Off Next Service</p>
+                      <p className="text-sm text-warning-600">500 points</p>
                     </div>
                     <Button 
                       size="sm" 
-                      className="bg-yellow-600 hover:bg-yellow-700"
+                      className="bg-warning-600 hover:bg-warning-700"
                       onClick={() => alert('Redeeming 10% Off reward')}
                     >
                       Redeem
                     </Button>
                   </div>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded p-3">
+                <div className="bg-primary-50 border border-primary-200 rounded p-3">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium text-blue-800">Priority Queue Access</p>
-                      <p className="text-sm text-blue-600">1000 points</p>
+                      <p className="font-medium text-primary-800">Priority Queue Access</p>
+                      <p className="text-sm text-primary-600">1000 points</p>
                     </div>
                     <Button 
                       size="sm" 
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-primary-600 hover:bg-primary-700"
                       onClick={() => alert('Redeeming Priority Queue Access')}
                     >
                       Redeem
@@ -343,14 +343,14 @@ export default function CustomerDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+            <div className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors cursor-pointer">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Strategy Consulting</h3>
-                  <p className="text-sm text-gray-600">KSh 40,000 • 90 min</p>
+                  <h3 className="font-semibold text-secondary-900">Strategy Consulting</h3>
+                  <p className="text-sm text-secondary-600">KSh 40,000 • 90 min</p>
                   <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                    <span className="text-sm text-gray-600">4.9 rating</span>
+                    <Star className="h-3 w-3 text-warning-500 fill-current" />
+                    <span className="text-sm text-secondary-600">4.9 rating</span>
                   </div>
                 </div>
                 <Link href="/customer/services">
@@ -359,14 +359,14 @@ export default function CustomerDashboard() {
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+            <div className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors cursor-pointer">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Business Planning</h3>
-                  <p className="text-sm text-gray-600">KSh 33,400 • 60 min</p>
+                  <h3 className="font-semibold text-secondary-900">Business Planning</h3>
+                  <p className="text-sm text-secondary-600">KSh 33,400 • 60 min</p>
                   <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                    <span className="text-sm text-gray-600">4.8 rating</span>
+                    <Star className="h-3 w-3 text-warning-500 fill-current" />
+                    <span className="text-sm text-secondary-600">4.8 rating</span>
                   </div>
                 </div>
                 <Link href="/customer/services">
@@ -375,14 +375,14 @@ export default function CustomerDashboard() {
               </div>
             </div>
             
-            <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+            <div className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors cursor-pointer">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">Financial Review</h3>
-                  <p className="text-sm text-gray-600">KSh 26,700 • 45 min</p>
+                  <h3 className="font-semibold text-secondary-900">Financial Review</h3>
+                  <p className="text-sm text-secondary-600">KSh 26,700 • 45 min</p>
                   <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                    <span className="text-sm text-gray-600">4.7 rating</span>
+                    <Star className="h-3 w-3 text-warning-500 fill-current" />
+                    <span className="text-sm text-secondary-600">4.7 rating</span>
                   </div>
                 </div>
                 <Link href="/customer/services">

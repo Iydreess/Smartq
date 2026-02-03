@@ -5,3 +5,5 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { Modal, ModalFooter } from './Modal'
 export { Badge, QueueStatusBadge, AppointmentStatusBadge } from './Badge'
 export { LoadingSpinner, LoadingCard, LoadingPage } from './Loading'
+export { Calendar } from './Calendar'
+export { TimeSlotPicker } from './TimeSlotPicker'

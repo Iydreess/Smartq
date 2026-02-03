@@ -1,5 +1,6 @@
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui'
+import Link from 'next/link'
 import { 
   Users, Clock, Calendar, BarChart3, Bell, MapPin,
   Smartphone, Shield, Star, Zap, CheckCircle, ArrowRight
@@ -97,11 +98,11 @@ export default function ServicesPage() {
               and optimize your business operations with intelligent queue management.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white">
-                Start Free Trial
+              <Button size="lg" className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white" asChild>
+                <Link href="/signup">Start Free Trial</Link>
               </Button>
-              <Button variant="outline" size="lg">
-                Watch Demo
+              <Button variant="outline" size="lg" asChild>
+                <Link href="/demo">Watch Demo</Link>
               </Button>
             </div>
           </div>
@@ -225,12 +226,14 @@ export default function ServicesPage() {
             Join thousands of businesses already using Smartq to deliver exceptional customer experiences.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-primary-700 hover:bg-primary-50">
-              Start Free Trial
-              <ArrowRight className="ml-2 w-5 h-5" />
+            <Button size="lg" variant="secondary" className="bg-white text-primary-700 hover:bg-primary-50" asChild>
+              <Link href="/signup">
+                Start Free Trial
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-700">
-              Contact Sales
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-700" asChild>
+              <Link href="/booking">Contact Sales</Link>
             </Button>
           </div>
         </div>

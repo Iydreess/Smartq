@@ -1,6 +1,7 @@
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui'
 import { Check, X, Star, Crown, Zap, Shield } from 'lucide-react'
+import Link from 'next/link'
 
 export default function PricingPage() {
   const plans = [
@@ -207,8 +208,11 @@ export default function PricingPage() {
                           : ''
                       }`}
                       variant={plan.popular ? 'default' : 'outline'}
+                      asChild
                     >
-                      {plan.cta}
+                      <Link href={plan.cta === 'Contact Sales' ? '/booking' : '/signup'}>
+                        {plan.cta}
+                      </Link>
                     </Button>
                   </div>
                   
@@ -304,11 +308,11 @@ export default function PricingPage() {
             Start your free 14-day trial today. No credit card required, cancel anytime.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-primary-700 hover:bg-primary-50">
-              Start Free Trial
+            <Button size="lg" variant="secondary" className="bg-white text-primary-700 hover:bg-primary-50" asChild>
+              <Link href="/signup">Start Free Trial</Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-700">
-              Contact Sales
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary-700" asChild>
+              <Link href="/booking">Contact Sales</Link>
             </Button>
           </div>
         </div>
