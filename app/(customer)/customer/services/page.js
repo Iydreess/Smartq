@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { 
@@ -8,131 +8,59 @@ import {
   Calendar, MapPin, Award, Heart, Eye, Plus,
   ChevronRight, Tag, Users, Zap, Shield, CheckCircle
 } from 'lucide-react'
+import { useUser } from '@/lib/supabase/hooks'
+import { getBusinesses, getServices } from '@/lib/supabase/queries'
+import toast from 'react-hot-toast'
 
 /**
  * Customer Services Page - Browse and book available services
  */
 export default function CustomerServices() {
+  const { user, loading: userLoading } = useUser()
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('popular')
+  const [services, setServices] = useState([])
+  const [businesses, setBusinesses] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const services = [
-    {
-      id: 1,
-      name: 'Strategy Consulting',
-      category: 'Business Consulting',
-      description: 'Comprehensive business strategy development and planning sessions to accelerate your growth',
-      price: 300,
-      duration: 90,
-      rating: 4.9,
-      reviews: 127,
-      staff: ['James Wilson', 'Sarah Mitchell'],
-      location: 'Conference Room A',
-      tags: ['Popular', 'Premium', 'Expert'],
-      features: ['Strategy Planning', 'Market Analysis', 'Growth Planning'],
-      image: '/api/placeholder/300/200',
-      availability: 'available',
-      nextSlot: '2025-10-02 2:00 PM',
-      isPopular: true,
-      isRecommended: false
-    },
-    {
-      id: 2,
-      name: 'Cardiology Consultation',
-      category: 'Healthcare',
-      description: 'Expert cardiac evaluation and treatment planning with state-of-the-art equipment',
-      price: 220,
-      duration: 60,
-      rating: 5.0,
-      reviews: 89,
-      staff: ['Dr. Emily Rodriguez', 'Dr. Michael Chen'],
-      location: 'Medical Suite 2',
-      tags: ['Medical', 'Specialist', 'Insurance'],
-      features: ['ECG Testing', 'Heart Monitoring', 'Treatment Plans'],
-      image: '/api/placeholder/300/200',
-      availability: 'limited',
-      nextSlot: '2025-10-03 10:30 AM',
-      isPopular: false,
-      isRecommended: true
-    },
-    {
-      id: 3,
-      name: 'Personal Training Session',
-      category: 'Sports & Fitness',
-      description: 'One-on-one fitness training and customized workout planning for all levels',
-      price: 80,
-      duration: 60,
-      rating: 4.8,
-      reviews: 203,
-      staff: ['Alex Johnson', 'Lisa Martinez', 'Mike Thompson'],
-      location: 'Gym Floor',
-      tags: ['Fitness', 'Beginner Friendly', 'Group Available'],
-      features: ['Custom Workouts', 'Nutrition Guidance', 'Progress Tracking'],
-      image: '/api/placeholder/300/200',
-      availability: 'available',
-      nextSlot: '2025-10-02 6:00 AM',
-      isPopular: true,
-      isRecommended: false
-    },
-    {
-      id: 4,
-      name: 'Legal Consultation',
-      category: 'Professional Services',
-      description: 'Professional legal advice and consultation for business and personal matters',
-      price: 250,
-      duration: 60,
-      rating: 4.8,
-      reviews: 76,
-      staff: ['David Wilson', 'Rachel Brown'],
-      location: 'Law Office',
-      tags: ['Legal', 'Confidential', 'Expert'],
-      features: ['Legal Analysis', 'Document Review', 'Case Strategy'],
-      image: '/api/placeholder/300/200',
-      availability: 'available',
-      nextSlot: '2025-10-04 1:00 PM',
-      isPopular: false,
-      isRecommended: true
-    },
-    {
-      id: 5,
-      name: 'Group Yoga Class',
-      category: 'Sports & Fitness',
-      description: 'Relaxing group yoga session for stress relief and flexibility improvement',
-      price: 25,
-      duration: 75,
-      rating: 4.7,
-      reviews: 145,
-      staff: ['Sarah Williams', 'Emma Davis'],
-      location: 'Studio B',
-      tags: ['Group', 'Relaxation', 'All Levels'],
-      features: ['Stress Relief', 'Flexibility', 'Mindfulness'],
-      image: '/api/placeholder/300/200',
-      availability: 'available',
-      nextSlot: '2025-10-02 7:00 PM',
-      isPopular: false,
-      isRecommended: false
-    },
-    {
-      id: 6,
-      name: 'Tax Preparation',
-      category: 'Professional Services',
-      description: 'Complete tax filing and preparation services with expert guidance',
-      price: 150,
-      duration: 90,
-      rating: 4.6,
-      reviews: 94,
-      staff: ['Robert Chang', 'Jennifer Lee'],
-      location: 'Office 301',
-      tags: ['Seasonal', 'Documents Required', 'Expert'],
-      features: ['Tax Filing', 'Deduction Optimization', 'IRS Support'],
-      image: '/api/placeholder/300/200',
-      availability: 'seasonal',
-      nextSlot: 'Available in Tax Season',
-      isPopular: false,
-      isRecommended: false
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const businessesData = await getBusinesses()
+        setBusinesses(businessesData || [])
+        
+        // Fetch services for all businesses
+        const allServices = []
+        for (const business of businessesData || []) {
+          const businessServices = await getServices(business.id)
+          allServices.push(...(businessServices || []).map(s => ({
+            ...s,
+            business: business
+          })))
+        }
+        setServices(allServices)
+      } catch (error) {
+        console.error('Error fetching services:', error)
+        toast.error('Failed to load services')
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+
+    fetchData()
+  }, [])
+
+  if (userLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Search className="h-8 w-8 animate-pulse text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading services...</p>
+        </div>
+      </div>
+    )
+  }
 
   const categories = [
     { id: 'all', name: 'All Services', count: services.length },

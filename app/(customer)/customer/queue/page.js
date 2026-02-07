@@ -9,13 +9,19 @@ import {
   MessageSquare, Eye, TrendingUp, Activity,
   Zap, Timer, Target
 } from 'lucide-react'
+import { useUser } from '@/lib/supabase/hooks'
+import { getCustomerQueueEntries } from '@/lib/supabase/queries'
+import toast from 'react-hot-toast'
 
 /**
  * Customer Queue Status Page - Real-time queue tracking for customers
  */
 export default function CustomerQueue() {
+  const { user, loading: userLoading } = useUser()
   const [refreshing, setRefreshing] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [queueEntries, setQueueEntries] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // Update time every minute
   useEffect(() => {
@@ -25,39 +31,72 @@ export default function CustomerQueue() {
     return () => clearInterval(timer)
   }, [])
 
-  // Sample customer queue data
-  const queueData = {
-    customerPosition: 3,
-    estimatedWaitTime: 25, // minutes
-    totalInQueue: 8,
-    currentlyServing: 'Customer #001',
-    averageServiceTime: 12, // minutes
-    queueStatus: 'active', // active, paused, closed
-    joinedAt: '2:15 PM',
-    service: 'Strategy Consulting',
-    staff: 'James Wilson',
-    location: 'Conference Room A'
-  }
+  useEffect(() => {
+    async function fetchQueueEntries() {
+      if (!user) return
+      
+      try {
+        const entries = await getCustomerQueueEntries(user.id)
+        setQueueEntries(entries || [])
+      } catch (error) {
+        console.error('Error fetching queue entries:', error)
+        toast.error('Failed to load queue status')
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const queueHistory = [
-    { position: 5, time: '2:15 PM', status: 'joined' },
-    { position: 4, time: '2:27 PM', status: 'moved' },
-    { position: 3, time: '2:35 PM', status: 'current' }
-  ]
+    fetchQueueEntries()
+  }, [user])
 
-  const otherQueues = [
-    { service: 'Business Planning', staff: 'Sarah Mitchell', queueLength: 4, avgWait: 15 },
-    { service: 'Financial Review', staff: 'Robert Chang', queueLength: 2, avgWait: 8 },
-    { service: 'Legal Consultation', staff: 'David Wilson', queueLength: 6, avgWait: 30 }
-  ]
-
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
+    if (!user) return
     setRefreshing(true)
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const entries = await getCustomerQueueEntries(user.id)
+      setQueueEntries(entries || [])
+      toast.success('Queue status updated')
+    } catch (error) {
+      console.error('Error refreshing queue:', error)
+      toast.error('Failed to refresh')
+    } finally {
       setRefreshing(false)
-    }, 1000)
+    }
   }
+
+  if (userLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading queue status...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const currentQueueEntry = queueEntries.find(entry => 
+    entry.status === 'waiting' || entry.status === 'called' || entry.status === 'serving'
+  )
+
+  const queueData = currentQueueEntry ? {
+    customerPosition: currentQueueEntry.position,
+    estimatedWaitTime: currentQueueEntry.estimated_wait_time || 0,
+    totalInQueue: 8, // TODO: Get from queue
+    currentlyServing: 'Customer #001', // TODO: Get from queue
+    averageServiceTime: 12,
+    queueStatus: currentQueueEntry.queue?.status || 'active',
+    joinedAt: new Date(currentQueueEntry.joined_at).toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit' 
+    }),
+    service: currentQueueEntry.queue?.service?.name || 'General Service',
+    staff: currentQueueEntry.queue?.service?.name || 'Staff Member',
+    location: currentQueueEntry.queue?.business?.address || 'Main Location'
+  } : null
+
+  const queueHistory = []
+  const otherQueues = []
 
   const getQueueStatusColor = (status) => {
     switch (status) {
@@ -95,10 +134,12 @@ export default function CustomerQueue() {
       </div>
 
       {/* Current Queue Status */}
+      {queueData ? (
+      <>
       <div className="bg-gradient-to-r from-primary-600 to-blue-600 rounded-xl p-6 text-white">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h2 className="text-xl font-bold mb-1">You're in the queue! 🎯</h2>
+            <h2 className="text-xl font-bold mb-1">You&apos;re in the queue! 🎯</h2>
             <p className="text-primary-100">Service: {queueData.service}</p>
             <p className="text-primary-100">Staff: {queueData.staff}</p>
           </div>
@@ -240,6 +281,19 @@ export default function CustomerQueue() {
           </CardContent>
         </Card>
       </div>
+      </>
+      ) : (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Users className="h-16 w-16 text-secondary-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-secondary-900 mb-2">No Active Queue</h3>
+            <p className="text-secondary-600 mb-4">You&apos;re not currently in any queue</p>
+            <Link href="/customer/services">
+              <Button>Browse Services</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Other Available Queues */}
       <Card>

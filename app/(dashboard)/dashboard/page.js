@@ -1,9 +1,15 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { useUser } from '@/lib/supabase/hooks'
+import { RefreshCw } from 'lucide-react'
 
 /**
  * Dashboard Overview Page
  */
 export default function DashboardPage() {
+  const { user, loading } = useUser()
+
   const stats = [
     {
       title: 'Active Queues',
@@ -31,13 +37,26 @@ export default function DashboardPage() {
     },
   ]
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-secondary-900">Dashboard Overview</h1>
+        <h1 className="text-2xl font-bold text-secondary-900">
+          Welcome back, {user?.full_name || user?.email || 'Business Owner'}! 👋
+        </h1>
         <p className="text-secondary-600">
-          Welcome back! Here&apos;s what&apos;s happening with your queues and appointments.
+          Here&apos;s what&apos;s happening with your queues and appointments.
         </p>
       </div>
 

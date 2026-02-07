@@ -1,17 +1,20 @@
 'use client'
 
 import { useEffect } from 'react'
-import { seedDemoUsers } from '@/lib/auth/seed'
+import { useUser } from '@/lib/supabase/hooks'
 
 /**
  * Auth Initializer Component
- * Seeds demo users on first load
+ * Initializes authentication state and listens for changes
  */
 export default function AuthInitializer({ children }) {
+  const { user, loading } = useUser()
+
   useEffect(() => {
-    // Seed demo users if not already done
-    seedDemoUsers()
-  }, [])
+    if (!loading) {
+      console.log('Auth initialized:', user ? `Logged in as ${user.email}` : 'Not logged in')
+    }
+  }, [user, loading])
 
   return <>{children}</>
 }

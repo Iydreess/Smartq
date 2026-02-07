@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { 
@@ -10,178 +10,74 @@ import {
   CheckCircle, AlertCircle, Info, Zap, Heart,
   Settings, Download, Share2, BookOpen, CreditCard
 } from 'lucide-react'
+import { useUser } from '@/lib/supabase/hooks'
+import { getNotifications, markNotificationRead, markAllNotificationsRead } from '@/lib/supabase/queries'
+import toast from 'react-hot-toast'
 
 /**
  * Customer Notifications Page - Message center for all notifications
  */
 export default function CustomerNotifications() {
+  const { user, loading: userLoading } = useUser()
   const [selectedFilter, setSelectedFilter] = useState('all')
   const [selectedNotifications, setSelectedNotifications] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const [notifications] = useState([
-    {
-      id: 1,
-      type: 'booking_confirmed',
-      title: 'Booking Confirmed',
-      message: 'Your Strategy Consulting appointment with James Wilson has been confirmed for October 2nd at 2:00 PM.',
-      timestamp: '2025-10-01T14:30:00Z',
-      isRead: false,
-      priority: 'high',
-      category: 'booking',
-      actionButtons: [
-        { label: 'View Details', action: 'view', variant: 'primary' },
-        { label: 'Add to Calendar', action: 'calendar', variant: 'outline' }
-      ],
-      metadata: {
-        bookingId: 'BK-2025-001',
-        service: 'Strategy Consulting',
-        staff: 'James Wilson',
-        datetime: '2025-10-02T14:00:00Z',
-        location: 'Conference Room A'
-      }
-    },
-    {
-      id: 2,
-      type: 'reminder',
-      title: 'Upcoming Appointment Reminder',
-      message: 'Your Personal Training Session with Alex Johnson is scheduled for tomorrow at 6:00 AM. Don\'t forget your workout gear!',
-      timestamp: '2025-10-01T12:00:00Z',
-      isRead: true,
-      priority: 'medium',
-      category: 'reminder',
-      actionButtons: [
-        { label: 'Reschedule', action: 'reschedule', variant: 'outline' },
-        { label: 'Cancel', action: 'cancel', variant: 'ghost' }
-      ],
-      metadata: {
-        bookingId: 'BK-2025-002',
-        service: 'Personal Training Session',
-        staff: 'Alex Johnson',
-        datetime: '2025-10-02T06:00:00Z',
-        location: 'Gym Floor'
-      }
-    },
-    {
-      id: 3,
-      type: 'payment_received',
-      title: 'Payment Processed',
-      message: 'Your payment of KSh 40,000.00 for Strategy Consulting has been successfully processed. Receipt #RCP-2025-001.',
-      timestamp: '2025-09-30T16:45:00Z',
-      isRead: true,
-      priority: 'low',
-      category: 'payment',
-      actionButtons: [
-        { label: 'Download Receipt', action: 'download', variant: 'outline' },
-        { label: 'View Transaction', action: 'view', variant: 'ghost' }
-      ],
-      metadata: {
-        amount: 300.00,
-        receiptId: 'RCP-2025-001',
-        paymentMethod: 'Credit Card ending in 4567',
-        service: 'Strategy Consulting'
-      }
-    },
-    {
-      id: 4,
-      type: 'loyalty_points',
-      title: 'Loyalty Points Earned',
-      message: 'Congratulations! You\'ve earned 150 loyalty points from your recent booking. You\'re now 600 points away from Platinum status!',
-      timestamp: '2025-09-30T15:20:00Z',
-      isRead: false,
-      priority: 'medium',
-      category: 'loyalty',
-      actionButtons: [
-        { label: 'View Rewards', action: 'rewards', variant: 'primary' },
-        { label: 'Redeem Points', action: 'redeem', variant: 'outline' }
-      ],
-      metadata: {
-        pointsEarned: 150,
-        totalPoints: 1250,
-        nextTier: 'Platinum',
-        pointsToNext: 600
-      }
-    },
-    {
-      id: 5,
-      type: 'system_update',
-      title: 'System Maintenance Notice',
-      message: 'Scheduled maintenance will occur on October 5th from 2:00 AM to 4:00 AM. The booking system will be temporarily unavailable.',
-      timestamp: '2025-09-29T10:00:00Z',
-      isRead: true,
-      priority: 'medium',
-      category: 'system',
-      actionButtons: [
-        { label: 'Learn More', action: 'info', variant: 'outline' }
-      ],
-      metadata: {
-        maintenanceStart: '2025-10-05T02:00:00Z',
-        maintenanceEnd: '2025-10-05T04:00:00Z',
-        affectedServices: ['Online Booking', 'Mobile App']
-      }
-    },
-    {
-      id: 6,
-      type: 'booking_cancelled',
-      title: 'Booking Cancelled',
-      message: 'Your Legal Consultation appointment scheduled for October 1st has been cancelled due to staff unavailability. Full refund has been processed.',
-      timestamp: '2025-09-28T11:30:00Z',
-      isRead: false,
-      priority: 'high',
-      category: 'booking',
-      actionButtons: [
-        { label: 'Rebook Service', action: 'rebook', variant: 'primary' },
-        { label: 'View Refund', action: 'refund', variant: 'outline' }
-      ],
-      metadata: {
-        originalBookingId: 'BK-2025-003',
-        service: 'Legal Consultation',
-        staff: 'David Wilson',
-        refundAmount: 250.00,
-        refundStatus: 'processed'
-      }
-    },
-    {
-      id: 7,
-      type: 'promotional',
-      title: 'Special Offer: 20% Off Wellness Services',
-      message: 'Exclusive offer for Gold members! Get 20% off all wellness and fitness services this month. Use code WELLNESS20 at checkout.',
-      timestamp: '2025-09-27T09:00:00Z',
-      isRead: true,
-      priority: 'low',
-      category: 'promotional',
-      actionButtons: [
-        { label: 'Browse Services', action: 'browse', variant: 'primary' },
-        { label: 'Copy Code', action: 'copy', variant: 'outline' }
-      ],
-      metadata: {
-        promoCode: 'WELLNESS20',
-        discount: 20,
-        expiryDate: '2025-10-31T23:59:59Z',
-        applicableServices: ['Personal Training', 'Yoga Classes', 'Wellness Coaching']
-      }
-    },
-    {
-      id: 8,
-      type: 'review_request',
-      title: 'How was your experience?',
-      message: 'We\'d love to hear about your recent Strategy Consulting session with James Wilson. Your feedback helps us improve our services.',
-      timestamp: '2025-09-26T14:00:00Z',
-      isRead: false,
-      priority: 'low',
-      category: 'feedback',
-      actionButtons: [
-        { label: 'Leave Review', action: 'review', variant: 'primary' },
-        { label: 'Maybe Later', action: 'later', variant: 'ghost' }
-      ],
-      metadata: {
-        bookingId: 'BK-2025-004',
-        service: 'Strategy Consulting',
-        staff: 'James Wilson',
-        sessionDate: '2025-09-25T14:00:00Z'
+  useEffect(() => {
+    async function fetchNotifications() {
+      if (!user) return
+      
+      try {
+        const data = await getNotifications(user.id)
+        setNotifications(data || [])
+      } catch (error) {
+        console.error('Error fetching notifications:', error)
+        toast.error('Failed to load notifications')
+      } finally {
+        setLoading(false)
       }
     }
-  ])
+
+    fetchNotifications()
+  }, [user])
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      await markNotificationRead(notificationId)
+      setNotifications(prev => prev.map(n => 
+        n.id === notificationId ? { ...n, read: true } : n
+      ))
+      toast.success('Marked as read')
+    } catch (error) {
+      console.error('Error marking notification as read:', error)
+      toast.error('Failed to mark as read')
+    }
+  }
+
+  const handleMarkAllRead = async () => {
+    if (!user) return
+    try {
+      await markAllNotificationsRead(user.id)
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      toast.success('All notifications marked as read')
+    } catch (error) {
+      console.error('Error marking all as read:', error)
+      toast.error('Failed to mark all as read')
+    }
+  }
+
+  if (userLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <Bell className="h-8 w-8 animate-pulse text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading notifications...</p>
+        </div>
+      </div>
+    )
+  }
 
   const filters = [
     { id: 'all', name: 'All', count: notifications.length },

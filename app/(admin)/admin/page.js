@@ -2,6 +2,8 @@
 
 import { Card } from '@/components/ui'
 import Link from 'next/link'
+import { useUser } from '@/lib/supabase/hooks'
+import { RefreshCw } from 'lucide-react'
 
 /**
  * AdminPage Component - Admin dashboard overview
@@ -9,6 +11,8 @@ import Link from 'next/link'
  * @returns {JSX.Element} AdminPage component
  */
 export default function AdminPage() {
+  const { user, loading } = useUser()
+
   // Dashboard stats
   const stats = [
     {
@@ -48,13 +52,26 @@ export default function AdminPage() {
     { name: 'System Settings', href: '/admin/settings', icon: '⚙️', color: 'orange' },
   ]
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
       <div className="pb-2">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Welcome back, {user?.full_name || user?.email || 'Admin'}! 👋
+        </h1>
         <p className="mt-2 text-sm sm:text-base text-gray-600">
-          Welcome back! Here's what's happening with SmartQ today.
+          Here&apos;s what&apos;s happening with SmartQ today.
         </p>
       </div>
 

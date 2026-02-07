@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { 
   User, Mail, Phone, MapPin, Calendar, Settings,
@@ -8,26 +8,43 @@ import {
   CreditCard, Shield, Award, Star, Clock, Heart,
   FileText, Download, Upload, Trash2, AlertCircle
 } from 'lucide-react'
+import { useUser } from '@/lib/supabase/hooks'
+import { updateProfile } from '@/lib/supabase/queries'
+import toast from 'react-hot-toast'
 
 /**
  * Customer Profile Page - Personal information management and account settings
  */
 export default function CustomerProfile() {
+  const { user, loading: userLoading } = useUser()
   const [isEditing, setIsEditing] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
   const [showPassword, setShowPassword] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const [bookingHistory] = useState([])
+
+  const [loyaltyStats] = useState({
+    totalPoints: 1250,
+    currentTier: 'Gold',
+    nextTier: 'Platinum',
+    pointsToNext: 750,
+    totalSpent: 2340,
+    totalBookings: 12,
+    favoriteService: 'Strategy Consulting'
+  })
 
   const [profile, setProfile] = useState({
-    firstName: 'John',
-    lastName: 'Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    birthDate: '1985-06-15',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    birthDate: '',
     address: {
-      street: '123 Main Street',
-      city: 'San Francisco',
-      state: 'CA',
-      zipCode: '94102',
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
       country: 'Kenya'
     },
     preferences: {
@@ -52,48 +69,48 @@ export default function CustomerProfile() {
     }
   })
 
-  const [bookingHistory] = useState([
-    {
-      id: 1,
-      service: 'Strategy Consulting',
-      date: '2025-09-28',
-      time: '2:00 PM',
-      staff: 'James Wilson',
-      status: 'completed',
-      rating: 5,
-      cost: 300
-    },
-    {
-      id: 2,
-      service: 'Personal Training Session',
-      date: '2025-09-25',
-      time: '6:00 AM',
-      staff: 'Alex Johnson',
-      status: 'completed',
-      rating: 4,
-      cost: 80
-    },
-    {
-      id: 3,
-      service: 'Legal Consultation',
-      date: '2025-09-20',
-      time: '1:00 PM',
-      staff: 'David Wilson',
-      status: 'completed',
-      rating: 5,
-      cost: 250
+  useEffect(() => {
+    if (user) {
+      const nameParts = (user.full_name || '').split(' ')
+      setProfile(prev => ({
+        ...prev,
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      }))
     }
-  ])
+  }, [user])
 
-  const [loyaltyStats] = useState({
-    totalPoints: 1250,
-    currentTier: 'Gold',
-    nextTier: 'Platinum',
-    pointsToNext: 750,
-    totalSpent: 2340,
-    totalBookings: 12,
-    favoriteService: 'Strategy Consulting'
-  })
+  const handleSaveProfile = async () => {
+    if (!user) return
+    
+    setSaving(true)
+    try {
+      await updateProfile(user.id, {
+        full_name: `${profile.firstName} ${profile.lastName}`.trim(),
+        phone: profile.phone,
+      })
+      toast.success('Profile updated successfully!')
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      toast.error('Failed to update profile')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (userLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-600 border-t-transparent mx-auto mb-4" />
+          <p className="text-secondary-600">Loading profile...</p>
+        </div>
+      </div>
+    )
+  }
 
   const tabs = [
     { id: 'profile', name: 'Personal Info', icon: User },

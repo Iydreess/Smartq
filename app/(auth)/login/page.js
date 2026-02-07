@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { authenticateUser, setCurrentUser, getRoleDashboard } from '@/lib/auth'
+import { signIn, getRoleDashboard } from '@/lib/auth'
 
 /**
  * Sign In Page with Role-Based Authentication
@@ -33,22 +33,25 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      // Authenticate user
-      const user = authenticateUser(formData.email, formData.password)
+      // Sign in with Supabase
+      console.log('[Login] Attempting to sign in with:', formData.email)
+      const result = await signIn(formData.email, formData.password)
       
-      if (!user) {
-        toast.error('Invalid email or password')
+      if (!result.success) {
+        toast.error(result.message)
         setLoading(false)
         return
       }
 
-      // Store user session
-      setCurrentUser(user)
+      const user = result.user
+      console.log('[Login] Sign in successful, user:', user)
+      console.log('[Login] User role:', user.role)
       
-      toast.success(`Welcome back, ${user.name}!`)
+      toast.success(`Welcome back, ${user.full_name || user.email}!`)
       
       // Redirect based on user role
       const dashboard = getRoleDashboard(user.role)
+      console.log('[Login] Redirecting to:', dashboard)
       
       setTimeout(() => {
         router.push(dashboard)
@@ -67,7 +70,7 @@ export default function SignInPage() {
       title="Sign in to your account"
       subtitle={
         <>
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link href="/signup" className="font-medium text-primary-600 hover:text-primary-500">
             Sign up
           </Link>

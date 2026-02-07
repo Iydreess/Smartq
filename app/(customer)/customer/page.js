@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { 
@@ -9,48 +9,65 @@ import {
   Phone, MessageSquare, CreditCard, MapPin,
   Bell, Eye, Plus, RefreshCw
 } from 'lucide-react'
+import { useUser } from '@/lib/supabase/hooks'
+import { getCustomerAppointments } from '@/lib/supabase/queries'
 
 /**
  * Customer Dashboard - Main overview page for customers
  */
 export default function CustomerDashboard() {
   const [notifications, setNotifications] = useState(3)
+  const { user, loading } = useUser()
+  const [upcomingAppointments, setUpcomingAppointments] = useState([])
+  const [loadingAppointments, setLoadingAppointments] = useState(true)
 
-  // Sample customer data
+  // Fetch customer appointments
+  useEffect(() => {
+    async function fetchAppointments() {
+      if (loading || !user) {
+        setLoadingAppointments(false)
+        return
+      }
+      
+      try {
+        console.log('[CustomerDashboard] Fetching appointments for user:', user.id)
+        const appointments = await getCustomerAppointments(user.id, { upcoming: true })
+        console.log('[CustomerDashboard] Appointments fetched:', appointments)
+        setUpcomingAppointments(appointments || [])
+      } catch (error) {
+        console.error('[CustomerDashboard] Error fetching appointments:', error)
+      } finally {
+        setLoadingAppointments(false)
+      }
+    }
+
+    fetchAppointments()
+  }, [user?.id, loading])
+
+  // Customer data from logged-in user
   const customerData = {
-    name: 'Sarah Johnson',
-    email: 'sarah.j@email.com',
-    phone: '+1 (555) 123-4567',
-    memberSince: 'March 2024',
-    loyaltyPoints: 1250,
-    totalBookings: 15,
-    upcomingBookings: 2,
-    favoriteService: 'Strategy Consulting',
-    preferredStaff: 'James Wilson'
+    name: user?.full_name || user?.email || 'Guest',
+    email: user?.email || '',
+    phone: user?.phone || 'Not provided',
+    memberSince: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
+    loyaltyPoints: 1250, // TODO: Calculate from database
+    totalBookings: 15, // TODO: Get from database
+    upcomingBookings: upcomingAppointments.length,
+    favoriteService: 'Strategy Consulting', // TODO: Calculate from database
+    preferredStaff: 'James Wilson' // TODO: Get from database
   }
 
-  const upcomingAppointments = [
-    {
-      id: 1,
-      service: 'Strategy Consulting',
-      staff: 'James Wilson',
-      date: '2025-10-02',
-      time: '2:00 PM',
-      location: 'Conference Room A',
-      status: 'confirmed',
-      canCancel: true
-    },
-    {
-      id: 2,
-      service: 'Business Planning',
-      staff: 'James Wilson', 
-      date: '2025-10-05',
-      time: '10:00 AM',
-      location: 'Conference Room B',
-      status: 'confirmed',
-      canCancel: true
-    }
-  ]
+  // Show loading state
+  if (loading || loadingAppointments) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
   const recentActivity = [
     {

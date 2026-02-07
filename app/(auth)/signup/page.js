@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { signUp } from '@/lib/auth'
 
 /**
  * Sign Up Page with Role Selection
@@ -15,6 +16,7 @@ export default function SignUpPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     role: 'customer', // default role
@@ -46,39 +48,27 @@ export default function SignUpPage() {
         return
       }
 
-      // Store user data in localStorage (replace with actual API call)
-      const userData = {
-        id: Date.now().toString(),
-        name: formData.name,
+      // Sign up with Supabase
+      const result = await signUp({
         email: formData.email,
+        password: formData.password,
+        full_name: formData.name,
+        phone: formData.phone,
         role: formData.role,
-        createdAt: new Date().toISOString(),
-      }
+      })
 
-      // Get existing users or initialize empty array
-      const users = JSON.parse(localStorage.getItem('users') || '[]')
-      
-      // Check if email already exists
-      if (users.some(user => user.email === formData.email)) {
-        toast.error('Email already registered')
+      if (!result.success) {
+        toast.error(result.message)
         setLoading(false)
         return
       }
-
-      // Add new user with hashed password (in production, hash on backend)
-      users.push({
-        ...userData,
-        password: formData.password, // In production, NEVER store plain passwords
-      })
       
-      localStorage.setItem('users', JSON.stringify(users))
-      
-      toast.success('Account created successfully!')
+      toast.success('Account created! Please check your email to verify your account.')
       
       // Redirect to login
       setTimeout(() => {
         router.push('/login')
-      }, 1000)
+      }, 2000)
       
     } catch (error) {
       toast.error('Registration failed. Please try again.')
@@ -118,6 +108,15 @@ export default function SignUpPage() {
           required
           placeholder="Enter your email"
           value={formData.email}
+          onChange={handleChange}
+        />
+
+        <Input
+          label="Phone Number (Optional)"
+          type="tel"
+          name="phone"
+          placeholder="Enter your phone number"
+          value={formData.phone}
           onChange={handleChange}
         />
         

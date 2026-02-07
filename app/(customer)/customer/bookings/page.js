@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { 
@@ -8,96 +8,48 @@ import {
   Edit, Trash2, CheckCircle, XCircle, AlertCircle,
   Filter, Search, Plus, RefreshCw, Eye, Star
 } from 'lucide-react'
+import { useUser } from '@/lib/supabase/hooks'
+import { getCustomerAppointments, cancelAppointment } from '@/lib/supabase/queries'
+import toast from 'react-hot-toast'
 
 /**
  * Customer Bookings Page - Manage all customer bookings and history
  */
 export default function CustomerBookings() {
+  const { user, loading: userLoading } = useUser()
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterPeriod, setFilterPeriod] = useState('upcoming')
+  const [bookings, setBookings] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const bookings = [
-    {
-      id: 1,
-      service: 'Strategy Consulting',
-      staff: 'James Wilson',
-      date: '2025-10-02',
-      time: '2:00 PM',
-      duration: '90 min',
-      location: 'Conference Room A',
-      price: 'KSh 40,000',
-      status: 'confirmed',
-      bookingRef: 'SQ-001234',
-      notes: 'Business expansion strategy discussion',
-      canCancel: true,
-      canReschedule: true,
-      rating: null
-    },
-    {
-      id: 2,
-      service: 'Business Planning',
-      staff: 'James Wilson',
-      date: '2025-10-05',
-      time: '10:00 AM',
-      duration: '60 min',
-      location: 'Conference Room B',
-      price: 'KSh 33,400',
-      status: 'confirmed',
-      bookingRef: 'SQ-001235',
-      notes: 'Quarterly planning session',
-      canCancel: true,
-      canReschedule: true,
-      rating: null
-    },
-    {
-      id: 3,
-      service: 'Strategy Consulting',
-      staff: 'James Wilson',
-      date: '2025-09-28',
-      time: '2:00 PM',
-      duration: '90 min',
-      location: 'Conference Room A',
-      price: 'KSh 40,000',
-      status: 'completed',
-      bookingRef: 'SQ-001233',
-      notes: 'Market analysis and competitive positioning',
-      canCancel: false,
-      canReschedule: false,
-      rating: 5
-    },
-    {
-      id: 4,
-      service: 'Financial Review',
-      staff: 'Sarah Mitchell',
-      date: '2025-09-20',
-      time: '11:00 AM',
-      duration: '45 min',
-      location: 'Office 205',
-      price: 'KSh 26,700',
-      status: 'completed',
-      bookingRef: 'SQ-001232',
-      notes: 'Q3 financial performance review',
-      canCancel: false,
-      canReschedule: false,
-      rating: 4
-    },
-    {
-      id: 5,
-      service: 'Business Planning',
-      staff: 'James Wilson',
-      date: '2025-09-15',
-      time: '3:00 PM',
-      duration: '60 min',
-      location: 'Conference Room B',
-      price: 'KSh 33,400',
-      status: 'cancelled',
-      bookingRef: 'SQ-001231',
-      notes: 'Cancelled due to scheduling conflict',
-      canCancel: false,
-      canReschedule: false,
-      rating: null
+  useEffect(() => {
+    async function fetchBookings() {
+      if (!user) return
+      
+      try {
+        const appointments = await getCustomerAppointments(user.id)
+        setBookings(appointments || [])
+      } catch (error) {
+        console.error('Error fetching bookings:', error)
+        toast.error('Failed to load bookings')
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+
+    fetchBookings()
+  }, [user])
+
+  if (userLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading bookings...</p>
+        </div>
+      </div>
+    )
+  }
 
   const getStatusColor = (status) => {
     switch (status) {

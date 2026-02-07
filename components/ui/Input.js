@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { forwardRef } from 'react'
+import { forwardRef, useId } from 'react'
 
 /**
  * Input Component
@@ -24,7 +24,8 @@ export const Input = forwardRef(({
   required = false,
   ...props
 }, ref) => {
-  const inputId = props.id || `input-${Math.random().toString(36).substr(2, 9)}`
+  const generatedId = useId()
+  const inputId = props.id || generatedId
   
   return (
     <div className="space-y-2">
