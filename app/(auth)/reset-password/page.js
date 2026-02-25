@@ -24,6 +24,41 @@ export default function ResetPasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [resetSuccess, setResetSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [verifyingSession, setVerifyingSession] = useState(true)
+
+  // Verify auth session on mount
+  useEffect(() => {
+    const verifySession = async () => {
+      try {
+        // Check if there's a valid session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError || !session) {
+          console.error('No valid session found:', sessionError)
+          setError('Invalid or expired reset link')
+        }
+        
+        setVerifyingSession(false)
+      } catch (err) {
+        console.error('Error verifying session:', err)
+        setError('Invalid or expired reset link')
+        setVerifyingSession(false)
+      }
+    }
+    
+    verifySession()
+  }, [])
+
+  // Handle redirect after successful reset
+  useEffect(() => {
+    if (resetSuccess) {
+      const timer = setTimeout(() => {
+        window.location.href = '/login'
+      }, 2000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [resetSuccess])
 
   const handleChange = (e) => {
     setFormData({
@@ -37,6 +72,8 @@ export default function ResetPasswordPage() {
     setLoading(true)
 
     try {
+      console.log('[Reset Password] Starting password reset...')
+      
       // Validation
       if (formData.password !== formData.confirmPassword) {
         toast.error('Passwords do not match')
@@ -61,14 +98,19 @@ export default function ResetPasswordPage() {
         return
       }
 
+      console.log('[Reset Password] Updating user password...')
+      
       // Update password in Supabase
-      const { error } = await supabase.auth.updateUser({
+      const { data, error } = await supabase.auth.updateUser({
         password: formData.password
       })
 
+      console.log('[Reset Password] Update response:', { data, error })
+
       if (error) {
+        console.error('[Reset Password] Error:', error)
         // Check if it's an expired/invalid token error
-        if (error.message.includes('expired') || error.message.includes('invalid')) {
+        if (error.message.includes('expired') || error.message.includes('invalid') || error.message.includes('session')) {
           setError('Invalid or expired reset link')
           toast.error('Your reset link has expired. Please request a new one.')
         } else {
@@ -78,20 +120,41 @@ export default function ResetPasswordPage() {
         return
       }
 
-      setResetSuccess(true)
-      toast.success('Password updated successfully!')
+      console.log('[Reset Password] Password updated successfully')
       
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
-        router.push('/login')
-      }, 2000)
+      // Success - update state
+      setLoading(false)
+      toast.success('Password updated successfully!')
+      setResetSuccess(true)
       
     } catch (error) {
-      toast.error('Failed to reset password. Please try again.')
-      console.error('Password reset error:', error)
-    } finally {
+      console.error('[Reset Password] Exception:', error)
+      // Only show error if it's not an abort error
+      if (error.name !== 'AbortError') {
+        toast.error('Failed to reset password. Please try again.')
+        console.error('Password reset error:', error)
+      }
       setLoading(false)
     }
+  }
+
+  // Show loading state while verifying session
+  if (verifyingSession) {
+    return (
+      <AuthLayout 
+        title="Verifying Reset Link"
+        subtitle="Please wait while we verify your password reset link"
+      >
+        <div className="text-center space-y-6">
+          <div className="mx-auto flex items-center justify-center h-16 w-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          </div>
+          <p className="text-secondary-600">
+            Verifying your password reset link...
+          </p>
+        </div>
+      </AuthLayout>
+    )
   }
 
   if (error) {
@@ -246,7 +309,7 @@ export default function ResetPasswordPage() {
           </div>
         )}
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full" disabled={loading || verifyingSession}>
           {loading ? 'Resetting Password...' : 'Reset Password'}
         </Button>
 

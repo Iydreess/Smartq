@@ -35,8 +35,11 @@ export default function ForgotPasswordPage() {
       toast.success('Password reset email sent! Check your inbox.')
       
     } catch (error) {
-      toast.error('Failed to send reset email. Please try again.')
-      console.error('Password reset error:', error)
+      // Only show error if it's not an abort error
+      if (error.name !== 'AbortError') {
+        toast.error('Failed to send reset email. Please try again.')
+        console.error('Password reset error:', error)
+      }
     } finally {
       setLoading(false)
     }

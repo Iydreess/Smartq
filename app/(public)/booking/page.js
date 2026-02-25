@@ -1,18 +1,23 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useMemo, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Calendar, TimeSlotPicker } from '@/components/ui'
-import { CheckCircle2, Clock, DollarSign, User, Phone, Mail, MessageSquare } from 'lucide-react'
+import { CheckCircle2, Clock, DollarSign, User, Phone, Mail, MessageSquare, Sparkles, TrendingUp } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { getAllServices } from '@/lib/supabase/queries'
+import { createAppointment } from '@/lib/supabase/queries'
+import { getCurrentUser } from '@/lib/auth'
+import { suggestAppointmentTimes } from '@/lib/ai/smartScheduling'
 
 /**
  * Enhanced Appointment Booking Page with Real-time Calendar
  */
 export default function BookingPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   
-  // Form state
+  // Form state  
   const [selectedService, setSelectedService] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedTime, setSelectedTime] = useState(null)
@@ -24,40 +29,76 @@ export default function BookingPage() {
     termsAccepted: false
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [availableServices, setAvailableServices] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [aiRecommendations, setAiRecommendations] = useState(null)
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false)
 
-  // Services data
-  const availableServices = [
-    {
-      id: 1,
-      name: 'General Consultation',
-      duration: 30,
-      price: 2500,
-      currency: 'KSh',
-      description: 'General consultation and basic health check',
-      category: 'Healthcare',
-      icon: User
-    },
-    {
-      id: 2,
-      name: 'Specialist Consultation',
-      duration: 60,
-      price: 5000,
-      currency: 'KSh',
-      description: 'Detailed consultation with our specialist',
-      category: 'Healthcare',
-      icon: User
-    },
-    {
-      id: 3,
-      name: 'Follow-up Appointment',
-      duration: 20,
-      price: 1500,
-      currency: 'KSh',
-      description: 'Follow-up appointment for existing patients',
-      category: 'Healthcare',
-      icon: User
-    },
-  ]
+  // Load services and user on mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true)
+        
+        // Get current user
+        const user = await getCurrentUser()
+        setCurrentUser(user)
+        
+        // Pre-fill form if user is logged in
+        if (user) {
+          setFormData(prev => ({
+            ...prev,
+            fullName: user.full_name || '',
+            email: user.email || '',
+            phone: user.phone || ''
+          }))
+        }
+        
+        // Load services from database
+        const services = await getAllServices()
+        
+        // Transform services to match component format
+        const transformedServices = services.map(service => ({
+          id: service.id,
+          businessId: service.business.id,
+          businessName: service.business.name,
+          name: service.name,
+          duration: service.duration,
+          price: service.price,
+          currency: 'KSh',
+          description: service.description,
+          category: service.category,
+          icon: User
+        }))
+        
+        setAvailableServices(transformedServices)
+        
+        // Check if a service was pre-selected from URL parameters
+        const serviceId = searchParams.get('serviceId')
+        const serviceName = searchParams.get('serviceName')
+        
+        if (serviceId || serviceName) {
+          // Try to find and pre-select the service
+          const preSelectedService = transformedServices.find(
+            s => s.id === serviceId || s.name === serviceName
+          )
+          
+          if (preSelectedService) {
+            setSelectedService(preSelectedService)
+            toast.success(`${preSelectedService.name} selected!`)
+          }
+        }
+      } catch (error) {
+        console.error('[Booking] Load error:', error)
+        toast.error('Failed to load services')
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    loadData()
+  }, [])
 
   // Generate time slots based on selected date
   const availableTimeSlots = useMemo(() => {
@@ -130,9 +171,57 @@ export default function BookingPage() {
     setSelectedTime(null)
   }
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = async (date) => {
     setSelectedDate(date)
     setSelectedTime(null)
+    
+    // Get AI-powered time recommendations
+    if (selectedService && date) {
+      setLoadingRecommendations(true)
+      try {
+        const availableSlots = generateTimeSlotsForDate(date)
+        const recommendations = await suggestAppointmentTimes({
+          serviceId: selectedService.id,
+          customerId: currentUser?.id,
+          selectedDate: date,
+          availableSlots: availableSlots.filter(s => s.available).map(s => s.time)
+        })
+        setAiRecommendations(recommendations)
+      } catch (error) {
+        console.error('[Booking] AI recommendation error:', error)
+      } finally {
+        setLoadingRecommendations(false)
+      }
+    }
+  }
+  
+  // Helper function to generate time slots for a specific date
+  const generateTimeSlotsForDate = (date) => {
+    const dayOfWeek = date.getDay()
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+    const workingHours = isWeekend 
+      ? { start: 9, end: 14 }
+      : { start: 8, end: 18 }
+    const slots = []
+    
+    for (let hour = workingHours.start; hour < workingHours.end; hour++) {
+      if (!isWeekend && hour === 13) continue
+      for (let minute of [0, 30]) {
+        const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour
+        const ampm = hour >= 12 ? 'PM' : 'AM'
+        const time12 = `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`
+        const randomBookings = Math.floor(Math.random() * 4)
+        const totalSlots = 4
+        const isAvailable = randomBookings < totalSlots
+        slots.push({
+          time: time12,
+          available: isAvailable,
+          bookedSlots: randomBookings,
+          totalSlots
+        })
+      }
+    }
+    return slots
   }
 
   const handleTimeSelect = (time) => {
@@ -150,6 +239,16 @@ export default function BookingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    // Check if user is logged in
+    if (!currentUser) {
+      toast.error('Please sign in to book an appointment')
+      // Redirect to signup page
+      setTimeout(() => {
+        router.push('/signup?returnUrl=/booking')
+      }, 1500)
+      return
+    }
+    
     if (!selectedService || !selectedDate || !selectedTime) {
       toast.error('Please select service, date, and time')
       return
@@ -163,56 +262,77 @@ export default function BookingPage() {
     setIsSubmitting(true)
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      const bookingData = {
-        service: selectedService.name,
-        category: selectedService.category,
-        date: selectedDate.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        }),
-        time: selectedTime,
-        duration: selectedService.duration,
-        price: selectedService.price,
-        currency: selectedService.currency,
-        ...formData
+      // Parse time to get start and end time
+      const [time, period] = selectedTime.split(' ')
+      const [hours, minutes] = time.split(':')
+      let hour24 = parseInt(hours)
+      
+      if (period === 'PM' && hour24 !== 12) hour24 += 12
+      if (period === 'AM' && hour24 === 12) hour24 = 0
+      
+      const startTime = `${hour24.toString().padStart(2, '0')}:${minutes}:00`
+      
+      // Calculate end time based on service duration
+      const endHour = hour24 + Math.floor(selectedService.duration / 60)
+      const endMinute = parseInt(minutes) + (selectedService.duration % 60)
+      const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}:00`
+      
+      const formattedDate = selectedDate.toISOString().split('T')[0]
+      
+      // Create appointment in database
+      const appointmentData = {
+        business_id: selectedService.businessId,
+        customer_id: currentUser.id,
+        service_id: selectedService.id,
+        appointment_date: formattedDate,
+        start_time: startTime,
+        end_time: endTime,
+        status: 'pending',
+        customer_notes: formData.notes,
+        notes: `Name: ${currentUser.full_name}, Email: ${currentUser.email}, Phone: ${currentUser.phone || formData.phone}`
       }
-
-      const bookings = JSON.parse(localStorage.getItem('bookings') || '[]')
-      const newBooking = {
-        id: Date.now(),
-        ...bookingData,
-        status: 'confirmed',
-        createdAt: new Date().toISOString()
-      }
-      bookings.push(newBooking)
-      localStorage.setItem('bookings', JSON.stringify(bookings))
-
+      
+      console.log('[Booking] Creating appointment:', appointmentData)
+      
+      const appointment = await createAppointment(appointmentData)
+      
+      console.log('[Booking] Appointment created:', appointment)
+      
       toast.success('Appointment booked successfully!')
 
+      // Redirect to confirmation page
       const params = new URLSearchParams({
-        service: bookingData.service,
-        date: bookingData.date,
-        time: bookingData.time,
-        duration: bookingData.duration,
-        price: bookingData.price,
-        name: bookingData.fullName
+        service: selectedService.name,
+        date: selectedDate.toLocaleDateString(),
+        time: selectedTime,
+        duration: `${selectedService.duration} minutes`,
+        price: `KSh ${selectedService.price}`,
+        name: formData.fullName,
+        business: selectedService.businessName || 'SmartQ'
       })
       
       router.push(`/booking/confirm?${params.toString()}`)
 
     } catch (error) {
-      toast.error('Failed to book appointment. Please try again.')
-      console.error('Booking error:', error)
+      console.error('[Booking] Error:', error)
+      toast.error(error.message || 'Failed to book appointment. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   const totalPrice = selectedService ? selectedService.price : 0
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="text-center py-20">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-secondary-600">Loading services...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -225,6 +345,58 @@ export default function BookingPage() {
           We&apos;ll send you a confirmation and reminders.
         </p>
       </div>
+
+      {/* Authentication Notice */}
+      {!currentUser && (
+        <div className="mb-8 max-w-3xl mx-auto">
+          <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <User className="h-5 w-5 text-blue-600" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  Account Required
+                </h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>
+                    You need to sign in to book an appointment. Already have an account?{' '}
+                    <a href="/login" className="font-semibold underline hover:text-blue-900">
+                      Sign in here
+                    </a>
+                    {' '}or{' '}
+                    <a href="/signup" className="font-semibold underline hover:text-blue-900">
+                      create a new account
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logged In User Badge */}
+      {currentUser && (
+        <div className="mb-8 max-w-3xl mx-auto">
+          <div className="bg-green-50 border-l-4 border-green-600 p-4 rounded-r-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-green-800">
+                  Signed in as {currentUser.full_name || currentUser.email}
+                </h3>
+                <p className="mt-1 text-sm text-green-700">
+                  You can now book appointments and manage your bookings.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -338,11 +510,51 @@ export default function BookingPage() {
                 </CardHeader>
                 <CardContent>
                   {selectedDate ? (
-                    <TimeSlotPicker
-                      timeSlots={availableTimeSlots}
-                      selectedTime={selectedTime}
-                      onTimeSelect={handleTimeSelect}
-                    />
+                    <>
+                      {/* AI Recommendations Banner */}
+                      {aiRecommendations && aiRecommendations.success && (
+                        <div className="mb-6 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <Sparkles className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-purple-900 mb-1 flex items-center gap-2">
+                                AI-Powered Recommendations
+                              </h4>
+                              <p className="text-sm text-purple-800 mb-3">
+                                {aiRecommendations.insight}
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {aiRecommendations.recommendations.slice(0, 3).map((rec, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleTimeSelect(rec.time)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border-2 border-purple-300 rounded-full text-sm font-medium text-purple-700 hover:bg-purple-100 hover:border-purple-400 transition-all"
+                                  >
+                                    <TrendingUp className="h-3.5 w-3.5" />
+                                    {rec.time}
+                                    <span className="text-xs text-purple-600">({rec.score}% match)</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {loadingRecommendations && (
+                        <div className="mb-4 text-center py-3 text-sm text-secondary-600">
+                          <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
+                          Getting AI recommendations...
+                        </div>
+                      )}
+                      
+                      <TimeSlotPicker
+                        timeSlots={availableTimeSlots}
+                        selectedTime={selectedTime}
+                        onTimeSelect={handleTimeSelect}
+                      />
+                    </>
                   ) : (
                     <div className="text-center py-8 text-secondary-500">
                       Please select a date first

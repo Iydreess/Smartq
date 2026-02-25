@@ -37,7 +37,7 @@ export default function SettingsPage() {
     { id: 'data', label: 'Data & Backup', icon: Database }
   ]
 
-  const businessProfile = {
+  const [businessProfile, setBusinessProfile] = useState({
     businessName: 'SmartQ Business Solutions',
     businessType: 'Multi-Service Provider',
     email: 'contact@smartqbusiness.com',
@@ -51,6 +51,10 @@ export default function SettingsPage() {
     language: 'English',
     founded: '2023',
     licenseNumber: 'BUS123456789'
+  })
+
+  const handleBusinessProfileChange = (field, value) => {
+    setBusinessProfile(prev => ({ ...prev, [field]: value }))
   }
 
   const userRoles = [
@@ -82,12 +86,17 @@ export default function SettingsPage() {
               <input
                 type="text"
                 value={businessProfile.businessName}
+                onChange={(e) => handleBusinessProfileChange('businessName', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Business Type</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <select 
+                value={businessProfile.businessType}
+                onChange={(e) => handleBusinessProfileChange('businessType', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
                 <option value="Multi-Service Provider">Multi-Service Provider</option>
                 <option value="Healthcare">Healthcare</option>
                 <option value="Fitness">Fitness & Wellness</option>
@@ -100,6 +109,7 @@ export default function SettingsPage() {
               <input
                 type="email"
                 value={businessProfile.email}
+                onChange={(e) => handleBusinessProfileChange('email', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -108,6 +118,7 @@ export default function SettingsPage() {
               <input
                 type="tel"
                 value={businessProfile.phone}
+                onChange={(e) => handleBusinessProfileChange('phone', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -117,6 +128,7 @@ export default function SettingsPage() {
             <input
               type="text"
               value={businessProfile.address}
+              onChange={(e) => handleBusinessProfileChange('address', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
@@ -124,6 +136,7 @@ export default function SettingsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Business Description</label>
             <textarea
               value={businessProfile.description}
+              onChange={(e) => handleBusinessProfileChange('description', e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
@@ -131,7 +144,11 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <select 
+                value={businessProfile.timezone}
+                onChange={(e) => handleBusinessProfileChange('timezone', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
                 <option value="Africa/Nairobi">East Africa Time (EAT)</option>
                 <option value="Africa/Lagos">West Africa Time (WAT)</option>
                 <option value="Africa/Johannesburg">South Africa Time (SAST)</option>
@@ -140,7 +157,11 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <select 
+                value={businessProfile.currency}
+                onChange={(e) => handleBusinessProfileChange('currency', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
                 <option value="KES">KSh - Kenyan Shilling</option>
                 <option value="TZS">TZS - Tanzanian Shilling</option>
                 <option value="UGX">UGX - Ugandan Shilling</option>
@@ -149,7 +170,11 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <select 
+                value={businessProfile.language}
+                onChange={(e) => handleBusinessProfileChange('language', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
                 <option value="English">English</option>
                 <option value="Spanish">Spanish</option>
                 <option value="French">French</option>

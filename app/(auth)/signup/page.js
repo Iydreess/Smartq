@@ -3,8 +3,8 @@
 import { AuthLayout } from '@/components/layout'
 import { Button, Input } from '@/components/ui'
 import Link from 'next/link'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { signUp } from '@/lib/auth'
 
@@ -13,6 +13,9 @@ import { signUp } from '@/lib/auth'
  */
 export default function SignUpPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl') || '/customer'
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -63,12 +66,26 @@ export default function SignUpPage() {
         return
       }
       
-      toast.success('Account created! Please check your email to verify your account.')
-      
-      // Redirect to login
-      setTimeout(() => {
-        router.push('/login')
-      }, 2000)
+      // Check if email confirmation is needed
+      if (result.needsConfirmation) {
+        toast.success(
+          'Account created! Please check your email to verify your account.',
+          { 
+            duration: 7000,
+            icon: '📧'
+          }
+        )
+        // Redirect to login with a message
+        setTimeout(() => {
+          router.push('/login?message=check-email')
+        }, 2000)
+      } else {
+        toast.success('Account created successfully! Redirecting to login...', { duration: 3000 })
+        // Redirect to return URL or login
+        setTimeout(() => {
+          router.push(returnUrl === '/customer' ? '/login' : `/login?returnUrl=${returnUrl}`)
+        }, 1500)
+      }
       
     } catch (error) {
       toast.error('Registration failed. Please try again.')

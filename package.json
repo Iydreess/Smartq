@@ -23,7 +23,12 @@
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
     "clean": "rmdir /s /q .next dist 2>nul || echo Cache cleared",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "create-demo-users": "node scripts/create-demo-users.mjs",
+    "fix-profile-policy": "node scripts/fix-profile-policy.mjs",
+    "test-connection": "node scripts/test-connection.mjs",
+    "check-email": "node scripts/check-email-config.mjs",
+    "seed-data": "node scripts/seed-business-data.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -35,6 +40,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
+    "openai": "^4.104.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.63.0",

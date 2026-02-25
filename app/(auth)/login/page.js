@@ -3,8 +3,8 @@
 import { AuthLayout } from '@/components/layout'
 import { Button, Input } from '@/components/ui'
 import Link from 'next/link'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { signIn, getRoleDashboard } from '@/lib/auth'
 
@@ -13,12 +13,28 @@ import { signIn, getRoleDashboard } from '@/lib/auth'
  */
 export default function SignInPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl')
+  const message = searchParams.get('message')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false,
   })
   const [loading, setLoading] = useState(false)
+
+  // Show message if coming from signup
+  useEffect(() => {
+    if (message === 'check-email') {
+      toast.success('Please check your email and click the confirmation link to verify your account', {
+        duration: 6000,
+        icon: '📧',
+      })
+      // Clean up URL
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [message])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -33,12 +49,25 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      // Sign in with Supabase
       console.log('[Login] Attempting to sign in with:', formData.email)
+      
       const result = await signIn(formData.email, formData.password)
       
+      console.log('[Login] Sign in result:', result)
+      
       if (!result.success) {
-        toast.error(result.message)
+        console.error('[Login] Sign in failed:', result.message)
+        
+        // Handle email confirmation requirement
+        if (result.requiresEmailConfirmation) {
+          toast.error(result.message, {
+            duration: 6000,
+            icon: '📧',
+          })
+        } else {
+          toast.error(result.message)
+        }
+        
         setLoading(false)
         return
       }
@@ -49,19 +78,25 @@ export default function SignInPage() {
       
       toast.success(`Welcome back, ${user.full_name || user.email}!`)
       
-      // Redirect based on user role
-      const dashboard = getRoleDashboard(user.role)
-      console.log('[Login] Redirecting to:', dashboard)
-      
-      setTimeout(() => {
-        router.push(dashboard)
-      }, 500)
+      // Redirect based on returnUrl or user role
+      if (returnUrl) {
+        console.log('[Login] Redirecting to return URL:', returnUrl)
+        setTimeout(() => {
+          window.location.href = returnUrl
+        }, 100)
+      } else {
+        const dashboard = getRoleDashboard(user.role)
+        console.log('[Login] Redirecting to dashboard:', dashboard)
+        setTimeout(() => {
+          console.log('[Login] Executing redirect now...')
+          window.location.href = dashboard
+        }, 100)
+      }
       
     } catch (error) {
-      toast.error('Login failed. Please try again.')
-      console.error('Login error:', error)
-    } finally {
+      console.error('[Login] Catch block - Error:', error)
       setLoading(false)
+      toast.error('Login failed. Please try again.')
     }
   }
 

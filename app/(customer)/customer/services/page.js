@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { 
   Search, Filter, Star, Clock, DollarSign, User,
@@ -16,6 +17,7 @@ import toast from 'react-hot-toast'
  * Customer Services Page - Browse and book available services
  */
 export default function CustomerServices() {
+  const router = useRouter()
   const { user, loading: userLoading } = useUser()
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -23,6 +25,17 @@ export default function CustomerServices() {
   const [services, setServices] = useState([])
   const [businesses, setBusinesses] = useState([])
   const [loading, setLoading] = useState(true)
+
+  const handleBookNow = (service) => {
+    const params = new URLSearchParams({
+      serviceId: service.id,
+      serviceName: service.name,
+      price: service.price,
+      duration: service.duration,
+      category: service.category
+    })
+    router.push(`/booking?${params.toString()}`)
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -36,7 +49,17 @@ export default function CustomerServices() {
           const businessServices = await getServices(business.id)
           allServices.push(...(businessServices || []).map(s => ({
             ...s,
-            business: business
+            business: business,
+            // Add default values for missing properties
+            staff: s.staff || [],
+            features: s.features || [],
+            tags: s.tags || [],
+            rating: s.rating || 0,
+            reviews: s.reviews || 0,
+            availability: s.availability || 'available',
+            nextSlot: s.nextSlot || 'Today',
+            isPopular: s.isPopular || false,
+            isRecommended: s.isRecommended || false
           })))
         }
         setServices(allServices)
@@ -84,17 +107,17 @@ export default function CustomerServices() {
     const matchesCategory = selectedCategory === 'all' || service.category === selectedCategory
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         service.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+                         (service.tags || []).some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
     return matchesCategory && matchesSearch
   })
 
   const sortedServices = [...filteredServices].sort((a, b) => {
     switch (sortBy) {
-      case 'popular': return b.reviews - a.reviews
-      case 'rating': return b.rating - a.rating
-      case 'price-low': return a.price - b.price
-      case 'price-high': return b.price - a.price
-      case 'duration': return a.duration - b.duration
+      case 'popular': return (b.reviews || 0) - (a.reviews || 0)
+      case 'rating': return (b.rating || 0) - (a.rating || 0)
+      case 'price-low': return (a.price || 0) - (b.price || 0)
+      case 'price-high': return (b.price || 0) - (a.price || 0)
+      case 'duration': return (a.duration || 0) - (b.duration || 0)
       default: return 0
     }
   })
@@ -184,7 +207,7 @@ export default function CustomerServices() {
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-bold text-lg text-secondary-900">{service.name}</h3>
-                    <span className="text-xl font-bold text-primary-600">${service.price}</span>
+                    <span className="text-xl font-bold text-primary-600">KSh {service.price}</span>
                   </div>
                   <p className="text-secondary-600 text-sm mb-3 line-clamp-2">{service.description}</p>
                   <div className="flex items-center gap-4 text-sm text-secondary-500 mb-3">
@@ -200,7 +223,7 @@ export default function CustomerServices() {
                   </div>
                   <Button 
                     className="w-full"
-                    onClick={() => alert(`Booking ${service.name}`)}
+                    onClick={() => handleBookNow(service)}
                   >
                     Book Now
                   </Button>
@@ -244,7 +267,7 @@ export default function CustomerServices() {
                 <div className="flex items-center justify-between bg-gray-50 rounded p-2">
                   <div className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4 text-green-600" />
-                    <span className="font-bold text-green-600">${service.price}</span>
+                    <span className="font-bold text-green-600">KSh {service.price}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4 text-blue-600" />
@@ -305,7 +328,7 @@ export default function CustomerServices() {
                   <Button 
                     className="flex-1" 
                     disabled={service.availability === 'seasonal'}
-                    onClick={() => !service.availability === 'seasonal' && alert(`Booking ${service.name}`)}
+                    onClick={() => service.availability !== 'seasonal' && handleBookNow(service)}
                   >
                     {service.availability === 'seasonal' ? 'Seasonal' : 'Book Now'}
                   </Button>
