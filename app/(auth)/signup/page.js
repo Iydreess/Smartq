@@ -38,6 +38,8 @@ export default function SignUpPage() {
     setLoading(true)
 
     try {
+      const normalizedEmail = (formData.email || '').trim().toLowerCase()
+
       // Validation
       if (formData.password !== formData.confirmPassword) {
         toast.error('Passwords do not match')
@@ -53,7 +55,7 @@ export default function SignUpPage() {
 
       // Sign up with Supabase
       const result = await signUp({
-        email: formData.email,
+        email: normalizedEmail,
         password: formData.password,
         full_name: formData.name,
         phone: formData.phone,

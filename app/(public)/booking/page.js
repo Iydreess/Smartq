@@ -16,6 +16,17 @@ import { suggestAppointmentTimes } from '@/lib/ai/smartScheduling'
 export default function BookingPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const formatTimeFrom24To12 = (time24) => {
+    if (!time24) return null
+    const [hourPart, minutePart] = String(time24).split(':')
+    const hour = Number(hourPart)
+    const minute = Number(minutePart)
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return null
+    const period = hour >= 12 ? 'PM' : 'AM'
+    const normalizedHour = hour % 12 || 12
+    return `${normalizedHour}:${String(minute).padStart(2, '0')} ${period}`
+  }
   
   // Form state  
   const [selectedService, setSelectedService] = useState(null)
@@ -77,6 +88,9 @@ export default function BookingPage() {
         // Check if a service was pre-selected from URL parameters
         const serviceId = searchParams.get('serviceId')
         const serviceName = searchParams.get('serviceName')
+        const isReschedule = searchParams.get('reschedule') === 'true'
+        const appointmentDateParam = searchParams.get('appointmentDate')
+        const appointmentTimeParam = searchParams.get('appointmentTime')
         
         if (serviceId || serviceName) {
           // Try to find and pre-select the service
@@ -86,8 +100,28 @@ export default function BookingPage() {
           
           if (preSelectedService) {
             setSelectedService(preSelectedService)
-            toast.success(`${preSelectedService.name} selected!`)
+            if (!isReschedule) {
+              toast.success(`${preSelectedService.name} selected!`)
+            }
           }
+        }
+
+        if (isReschedule) {
+          if (appointmentDateParam) {
+            const preSelectedDate = new Date(`${appointmentDateParam}T00:00:00`)
+            if (!Number.isNaN(preSelectedDate.getTime())) {
+              setSelectedDate(preSelectedDate)
+            }
+          }
+
+          if (appointmentTimeParam) {
+            const preSelectedTime = formatTimeFrom24To12(appointmentTimeParam)
+            if (preSelectedTime) {
+              setSelectedTime(preSelectedTime)
+            }
+          }
+
+          toast.success('Reschedule mode: your previous date and time were pre-filled')
         }
       } catch (error) {
         console.error('[Booking] Load error:', error)
@@ -302,6 +336,10 @@ export default function BookingPage() {
 
       // Redirect to confirmation page
       const params = new URLSearchParams({
+        booked: '1',
+        appointmentId: appointment.id,
+        serviceId: selectedService.id,
+        businessId: selectedService.businessId,
         service: selectedService.name,
         date: selectedDate.toLocaleDateString(),
         time: selectedTime,

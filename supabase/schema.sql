@@ -162,6 +162,17 @@ ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analytics_events ENABLE ROW LEVEL SECURITY;
 
+-- Helper to check admin role without recursive RLS policy evaluation
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = auth.uid() AND role = 'admin'
+    );
+$$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
+
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+
 -- RLS Policies for profiles
 CREATE POLICY "Users can view their own profile" ON public.profiles
     FOR SELECT USING (auth.uid() = id);
@@ -177,12 +188,7 @@ CREATE POLICY "Business owners can manage their businesses" ON public.businesses
     FOR ALL USING (auth.uid() = owner_id);
 
 CREATE POLICY "Admins can manage all businesses" ON public.businesses
-    FOR ALL USING (
-        EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-        )
-    );
+    FOR ALL USING (public.is_admin());
 
 -- RLS Policies for services
 CREATE POLICY "Anyone can view active services" ON public.services

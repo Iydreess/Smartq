@@ -49,14 +49,17 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      console.log('[Login] Attempting to sign in with:', formData.email)
-      
-      const result = await signIn(formData.email, formData.password)
+      const normalizedEmail = (formData.email || '').trim().toLowerCase()
+
+      console.log('[Login] Attempting to sign in with:', normalizedEmail)
+
+      const result = await signIn(normalizedEmail, formData.password)
       
       console.log('[Login] Sign in result:', result)
       
       if (!result.success) {
-        console.error('[Login] Sign in failed:', result.message)
+        // Expected auth failures should not raise dev runtime overlay.
+        console.warn('[Login] Sign in failed:', result.message)
         
         // Handle email confirmation requirement
         if (result.requiresEmailConfirmation) {
@@ -94,7 +97,7 @@ export default function SignInPage() {
       }
       
     } catch (error) {
-      console.error('[Login] Catch block - Error:', error)
+      console.warn('[Login] Unexpected sign-in exception:', error?.message || error)
       setLoading(false)
       toast.error('Login failed. Please try again.')
     }

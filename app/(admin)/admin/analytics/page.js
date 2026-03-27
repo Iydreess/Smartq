@@ -1,9 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui'
+import { useState, useEffect, useMemo } from 'react'
+import { Card, Button, Badge } from '@/components/ui'
 import { predictSystemIssues } from '@/lib/ai/systemMonitoring'
-import { AlertTriangle, CheckCircle, TrendingUp, Activity, AlertCircle } from 'lucide-react'
+import {
+  AlertTriangle,
+  CheckCircle,
+  Activity,
+  AlertCircle,
+  RefreshCw,
+  Download,
+} from 'lucide-react'
+import toast from 'react-hot-toast'
+import {
+  getAllBusinesses,
+  getBusinesses,
+  getAllProfiles,
+  getQueues,
+  getBusinessAppointments,
+} from '@/lib/supabase/queries'
 
 /**
  * AdminAnalyticsPage Component - System-wide analytics and insights
@@ -12,6 +27,30 @@ import { AlertTriangle, CheckCircle, TrendingUp, Activity, AlertCircle } from 'l
  */
 export default function AdminAnalyticsPage() {
   const [timeRange, setTimeRange] = useState('7d')
+  const [loadingData, setLoadingData] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [analytics, setAnalytics] = useState({
+    totals: {
+      users: 0,
+      businesses: 0,
+      activeQueues: 0,
+      bookings: 0,
+      revenue: 0,
+      avgWait: 0,
+    },
+    growth: {
+      users: 0,
+      businesses: 0,
+      activeQueues: 0,
+      bookings: 0,
+      revenue: 0,
+    },
+    industries: [],
+    topBusinesses: [],
+    activities: [],
+    trendSeries: [],
+  })
+
   const [systemHealth, setSystemHealth] = useState({
     success: false,
     issues: [],
@@ -23,21 +62,103 @@ export default function AdminAnalyticsPage() {
   })
   const [loadingHealth, setLoadingHealth] = useState(true)
   
-  // Load system health predictions
+  const isPermissionError = (error) => {
+    const code = error?.code || ''
+    const message = (error?.message || '').toLowerCase()
+    return code === '42501' || message.includes('permission denied') || message.includes('row-level security')
+  }
+
+  const getErrorMessage = (error) => {
+    if (!error) return 'Unknown error'
+    if (typeof error === 'string') return error
+    return error.message || error.details || error.hint || 'Unknown error'
+  }
+
+  const getRangeWindow = (rangeKey) => {
+    const now = new Date()
+    const msByRange = {
+      '24h': 24 * 60 * 60 * 1000,
+      '7d': 7 * 24 * 60 * 60 * 1000,
+      '30d': 30 * 24 * 60 * 60 * 1000,
+      '90d': 90 * 24 * 60 * 60 * 1000,
+      '1y': 365 * 24 * 60 * 60 * 1000,
+    }
+
+    const duration = msByRange[rangeKey] || msByRange['7d']
+    const currentStart = new Date(now.getTime() - duration)
+    const previousEnd = new Date(currentStart.getTime() - 1)
+    const previousStart = new Date(previousEnd.getTime() - duration)
+
+    return {
+      now,
+      currentStart,
+      previousStart,
+      previousEnd,
+    }
+  }
+
+  const asDateTime = (value) => {
+    if (!value) return 'N/A'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return 'N/A'
+    return date.toLocaleString()
+  }
+
+  const calcGrowth = (current, previous) => {
+    if (!previous && !current) return 0
+    if (!previous) return 100
+    return Math.round(((current - previous) / previous) * 1000) / 10
+  }
+
+  const extractRevenue = (appointment) => {
+    const value = Number(appointment?.service?.price || 0)
+    return Number.isFinite(value) ? value : 0
+  }
+
+  const buildTrendSeries = (appointments, rangeKey, currentStart) => {
+    const now = new Date()
+    const bucketCount = rangeKey === '24h' ? 12 : rangeKey === '7d' ? 7 : 10
+    const totalWindowMs = now.getTime() - currentStart.getTime()
+    const bucketMs = Math.max(Math.floor(totalWindowMs / bucketCount), 1)
+
+    const buckets = Array.from({ length: bucketCount }, (_, index) => {
+      const start = new Date(currentStart.getTime() + index * bucketMs)
+      const end = new Date(index === bucketCount - 1 ? now.getTime() : currentStart.getTime() + (index + 1) * bucketMs - 1)
+      const label = rangeKey === '24h'
+        ? start.toLocaleTimeString([], { hour: '2-digit' })
+        : start.toLocaleDateString([], { month: 'short', day: 'numeric' })
+
+      return {
+        start,
+        end,
+        label,
+        bookings: 0,
+        revenue: 0,
+      }
+    })
+
+    appointments.forEach((appointment) => {
+      const appointmentDate = new Date(appointment.created_at || appointment.appointment_date)
+      if (Number.isNaN(appointmentDate.getTime())) return
+
+      const index = buckets.findIndex((bucket) => appointmentDate >= bucket.start && appointmentDate <= bucket.end)
+      if (index === -1) return
+
+      buckets[index].bookings += 1
+      buckets[index].revenue += extractRevenue(appointment)
+    })
+
+    return buckets
+  }
+
   useEffect(() => {
     async function loadSystemHealth() {
       setLoadingHealth(true)
       try {
         const health = await predictSystemIssues()
-        console.log('[Admin Analytics] System health loaded:', {
-          success: health.success,
-          issueCount: health.issues?.length || 0,
-          healthScore: health.healthScore
-        })
         setSystemHealth(health)
       } catch (error) {
-        console.error('[Admin Analytics] Error loading system health:', error)
-        // Set a fallback empty state
+        console.warn('[Admin Analytics] Error loading system health:', error)
         setSystemHealth({
           success: false,
           issues: [],
@@ -59,54 +180,224 @@ export default function AdminAnalyticsPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // Mock analytics data
-  const metrics = {
-    totalUsers: {
-      current: 3847,
-      change: 8.2,
-      trend: 'up'
-    },
-    totalBusinesses: {
-      current: 127,
-      change: 12.1,
-      trend: 'up'
-    },
-    activeQueues: {
-      current: 234,
-      change: 5.3,
-      trend: 'up'
-    },
-    totalRevenue: {
-      current: 52340,
-      change: 15.7,
-      trend: 'up'
+  const loadAnalytics = async ({ silent = false } = {}) => {
+    try {
+      if (silent) {
+        setRefreshing(true)
+      } else {
+        setLoadingData(true)
+      }
+
+      const { currentStart, previousStart, previousEnd } = getRangeWindow(timeRange)
+
+      const [businessesResult, profilesResult] = await Promise.allSettled([
+        getAllBusinesses(),
+        getAllProfiles(),
+      ])
+
+      let businesses = []
+      if (businessesResult.status === 'fulfilled') {
+        businesses = businessesResult.value || []
+      } else if (isPermissionError(businessesResult.reason)) {
+        businesses = await getBusinesses()
+        toast.error('Admin access to all businesses is not configured yet. Showing active businesses only.')
+      } else {
+        throw businessesResult.reason
+      }
+
+      const profiles = profilesResult.status === 'fulfilled' ? (profilesResult.value || []) : []
+      const businessMap = businesses.reduce((acc, business) => {
+        acc[business.id] = business
+        return acc
+      }, {})
+
+      const [queuesByBusiness, appointmentsByBusiness] = await Promise.all([
+        Promise.allSettled(businesses.map((business) => getQueues(business.id))),
+        Promise.allSettled(businesses.map((business) => getBusinessAppointments(business.id))),
+      ])
+
+      const allQueues = queuesByBusiness
+        .filter((result) => result.status === 'fulfilled')
+        .flatMap((result) => result.value || [])
+
+      const allAppointments = appointmentsByBusiness
+        .filter((result) => result.status === 'fulfilled')
+        .flatMap((result) => result.value || [])
+
+      const currentAppointments = allAppointments.filter((appointment) => {
+        const date = new Date(appointment.created_at || appointment.appointment_date)
+        return !Number.isNaN(date.getTime()) && date >= currentStart
+      })
+
+      const previousAppointments = allAppointments.filter((appointment) => {
+        const date = new Date(appointment.created_at || appointment.appointment_date)
+        return !Number.isNaN(date.getTime()) && date >= previousStart && date <= previousEnd
+      })
+
+      const currentBusinesses = businesses.filter((business) => {
+        const date = new Date(business.created_at)
+        return !Number.isNaN(date.getTime()) && date >= currentStart
+      }).length
+
+      const previousBusinesses = businesses.filter((business) => {
+        const date = new Date(business.created_at)
+        return !Number.isNaN(date.getTime()) && date >= previousStart && date <= previousEnd
+      }).length
+
+      const currentUsers = profiles.filter((profile) => {
+        const date = new Date(profile.created_at)
+        return !Number.isNaN(date.getTime()) && date >= currentStart
+      }).length
+
+      const previousUsers = profiles.filter((profile) => {
+        const date = new Date(profile.created_at)
+        return !Number.isNaN(date.getTime()) && date >= previousStart && date <= previousEnd
+      }).length
+
+      const activeQueues = allQueues.filter((queue) => queue.status === 'active').length
+      const currentRevenue = currentAppointments.reduce((sum, appointment) => sum + extractRevenue(appointment), 0)
+      const previousRevenue = previousAppointments.reduce((sum, appointment) => sum + extractRevenue(appointment), 0)
+
+      const industryMap = businesses.reduce((acc, business) => {
+        const key = business.category || 'Uncategorized'
+        if (!acc[key]) {
+          acc[key] = { name: key, businesses: 0, revenue: 0 }
+        }
+        acc[key].businesses += 1
+        return acc
+      }, {})
+
+      currentAppointments.forEach((appointment) => {
+        const business = businessMap[appointment.business_id]
+        const category = business?.category || 'Uncategorized'
+        if (!industryMap[category]) {
+          industryMap[category] = { name: category, businesses: 0, revenue: 0 }
+        }
+        industryMap[category].revenue += extractRevenue(appointment)
+      })
+
+      const industries = Object.values(industryMap)
+        .map((item) => ({
+          ...item,
+          percentage: businesses.length ? Math.round((item.businesses / businesses.length) * 1000) / 10 : 0,
+        }))
+        .sort((a, b) => b.businesses - a.businesses)
+
+      const businessStatsMap = businesses.reduce((acc, business) => {
+        acc[business.id] = {
+          id: business.id,
+          name: business.name || 'Untitled Business',
+          customers: new Set(),
+          revenue: 0,
+          bookings: 0,
+          queues: 0,
+        }
+        return acc
+      }, {})
+
+      allQueues.forEach((queue) => {
+        if (!businessStatsMap[queue.business_id]) return
+        businessStatsMap[queue.business_id].queues += 1
+      })
+
+      currentAppointments.forEach((appointment) => {
+        const bucket = businessStatsMap[appointment.business_id]
+        if (!bucket) return
+        if (appointment.customer_id) {
+          bucket.customers.add(appointment.customer_id)
+        }
+        bucket.bookings += 1
+        bucket.revenue += extractRevenue(appointment)
+      })
+
+      const topBusinesses = Object.values(businessStatsMap)
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          customers: item.customers.size,
+          revenue: item.revenue,
+          queues: item.queues,
+          bookings: item.bookings,
+        }))
+        .sort((a, b) => b.revenue - a.revenue || b.bookings - a.bookings)
+        .slice(0, 6)
+
+      const activities = [
+        ...businesses.slice(0, 10).map((business) => ({
+          time: business.created_at,
+          action: 'Business registered',
+          user: business.name || 'Unknown business',
+          type: 'success',
+        })),
+        ...allQueues.slice(0, 10).map((queue) => ({
+          time: queue.updated_at || queue.created_at,
+          action: `Queue ${queue.status || 'updated'}`,
+          user: businessMap[queue.business_id]?.name || 'Unknown business',
+          type: queue.status === 'closed' ? 'warning' : 'info',
+        })),
+        ...currentAppointments.slice(0, 10).map((appointment) => ({
+          time: appointment.created_at || appointment.appointment_date,
+          action: 'Appointment created',
+          user: businessMap[appointment.business_id]?.name || 'Unknown business',
+          type: 'success',
+        })),
+      ]
+        .filter((item) => item.time)
+        .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+        .slice(0, 10)
+
+      const avgWait = allQueues.length
+        ? Math.round(allQueues.reduce((sum, queue) => sum + Number(queue.estimated_wait_time || 0), 0) / allQueues.length)
+        : 0
+
+      setAnalytics({
+        totals: {
+          users: profiles.length,
+          businesses: businesses.length,
+          activeQueues,
+          bookings: currentAppointments.length,
+          revenue: currentRevenue,
+          avgWait,
+        },
+        growth: {
+          users: calcGrowth(currentUsers, previousUsers),
+          businesses: calcGrowth(currentBusinesses, previousBusinesses),
+          activeQueues: 0,
+          bookings: calcGrowth(currentAppointments.length, previousAppointments.length),
+          revenue: calcGrowth(currentRevenue, previousRevenue),
+        },
+        industries,
+        topBusinesses,
+        activities,
+        trendSeries: buildTrendSeries(currentAppointments, timeRange, currentStart),
+      })
+    } catch (error) {
+      console.warn('[Admin Analytics] Failed to load analytics:', {
+        code: error?.code,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+      })
+      toast.error(getErrorMessage(error) || 'Failed to load analytics')
+      setAnalytics((prev) => ({
+        ...prev,
+        industries: [],
+        topBusinesses: [],
+        activities: [],
+        trendSeries: [],
+      }))
+    } finally {
+      if (silent) {
+        setRefreshing(false)
+      } else {
+        setLoadingData(false)
+      }
     }
   }
 
-  const industryData = [
-    { name: 'Healthcare', businesses: 34, percentage: 26.8, revenue: 18450 },
-    { name: 'Beauty & Wellness', businesses: 28, percentage: 22.0, revenue: 14230 },
-    { name: 'Professional Services', businesses: 22, percentage: 17.3, revenue: 9870 },
-    { name: 'Sports & Fitness', businesses: 18, percentage: 14.2, revenue: 5340 },
-    { name: 'Education', businesses: 15, percentage: 11.8, revenue: 3120 },
-    { name: 'Others', businesses: 10, percentage: 7.9, revenue: 1330 }
-  ]
-
-  const topBusinesses = [
-    { name: 'Beauty Bliss Salon', customers: 892, revenue: 4120, queues: 8 },
-    { name: 'Downtown Dental Clinic', customers: 543, revenue: 2450, queues: 12 },
-    { name: 'Premier Medical Center', customers: 678, revenue: 3890, queues: 15 },
-    { name: 'Elite Fitness Club', customers: 445, revenue: 1980, queues: 6 },
-    { name: 'Tech Training Academy', customers: 332, revenue: 1560, queues: 4 }
-  ]
-
-  const recentActivities = [
-    { time: '2 min ago', action: 'New business registered', user: 'Sarah Johnson', type: 'success' },
-    { time: '15 min ago', action: 'Business suspended', user: 'System Admin', type: 'warning' },
-    { time: '1 hour ago', action: 'Plan upgraded to Business', user: 'Mike Williams', type: 'success' },
-    { time: '2 hours ago', action: 'Queue limit exceeded', user: 'Beauty Salon X', type: 'error' },
-    { time: '3 hours ago', action: 'New admin user added', user: 'System Admin', type: 'info' }
-  ]
+  useEffect(() => {
+    loadAnalytics()
+  }, [timeRange])
 
   const getActivityColor = (type) => {
     const colors = {
@@ -118,6 +409,83 @@ export default function AdminAnalyticsPage() {
     return colors[type] || colors.info
   }
 
+  const handleExport = () => {
+    if (!analytics.topBusinesses.length) {
+      toast.error('No analytics rows to export')
+      return
+    }
+
+    const rows = analytics.topBusinesses.map((item, index) => ({
+      rank: index + 1,
+      business: item.name,
+      revenue: item.revenue,
+      bookings: item.bookings,
+      customers: item.customers,
+      queues: item.queues,
+    }))
+
+    const headers = Object.keys(rows[0])
+    const csv = [
+      headers.join(','),
+      ...rows.map((row) => headers.map((header) => `"${String(row[header] ?? '').replace(/"/g, '""')}"`).join(',')),
+    ].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.setAttribute('download', `admin-analytics-${Date.now()}.csv`)
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(url)
+
+    toast.success('Analytics exported')
+  }
+
+  const metricCards = useMemo(() => {
+    return [
+      {
+        title: 'Total Users',
+        value: analytics.totals.users.toLocaleString(),
+        growth: analytics.growth.users,
+      },
+      {
+        title: 'Total Businesses',
+        value: analytics.totals.businesses.toLocaleString(),
+        growth: analytics.growth.businesses,
+      },
+      {
+        title: 'Active Queues',
+        value: analytics.totals.activeQueues.toLocaleString(),
+        growth: analytics.growth.activeQueues,
+      },
+      {
+        title: 'Revenue',
+        value: `$${Math.round(analytics.totals.revenue).toLocaleString()}`,
+        growth: analytics.growth.revenue,
+      },
+    ]
+  }, [analytics])
+
+  const trendStats = useMemo(() => {
+    const series = analytics.trendSeries || []
+    const maxBookings = series.reduce((max, item) => Math.max(max, item.bookings), 0)
+    const maxRevenue = series.reduce((max, item) => Math.max(max, item.revenue), 0)
+    return { series, maxBookings, maxRevenue }
+  }, [analytics.trendSeries])
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading analytics...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="pb-2 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
@@ -125,17 +493,27 @@ export default function AdminAnalyticsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">System Analytics</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-2">Comprehensive insights into system performance</p>
         </div>
-        <select
-          value={timeRange}
-          onChange={(e) => setTimeRange(e.target.value)}
-          className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="24h">Last 24 Hours</option>
-          <option value="7d">Last 7 Days</option>
-          <option value="30d">Last 30 Days</option>
-          <option value="90d">Last 90 Days</option>
-          <option value="1y">Last Year</option>
-        </select>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <select
+            value={timeRange}
+            onChange={(e) => setTimeRange(e.target.value)}
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="24h">Last 24 Hours</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="90d">Last 90 Days</option>
+            <option value="1y">Last Year</option>
+          </select>
+          <Button variant="outline" className="flex items-center gap-2" onClick={() => loadAnalytics({ silent: true })}>
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button className="flex items-center gap-2" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+        </div>
       </div>
 
       {/* System Health - AI Predictive Maintenance */}
@@ -211,7 +589,7 @@ export default function AdminAnalyticsPage() {
                               {issue.severity === 'medium' && <AlertTriangle className="h-4 w-4 text-orange-500" />}
                               {issue.severity === 'low' && <Activity className="h-4 w-4 text-yellow-500" />}
                               <span className="font-semibold text-sm text-gray-900">
-                                {issue.type.replace(/_/g, ' ').toUpperCase()}
+                                {String(issue?.type || 'issue').replace(/_/g, ' ').toUpperCase()}
                               </span>
                               <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                                 issue.severity === 'high' ? 'bg-red-100 text-red-700' :
@@ -228,7 +606,7 @@ export default function AdminAnalyticsPage() {
                               <span>Current: <strong>{String(issue.currentValue)}</strong></span>
                               <span>Threshold: <strong>{String(issue.threshold)}</strong></span>
                               <span>ETA: <strong>{String(issue.estimatedTime)}</strong></span>
-                              <span>Probability: <strong>{(issue.probability * 100).toFixed(0)}%</strong></span>
+                              <span>Probability: <strong>{Number.isFinite(Number(issue?.probability)) ? `${Math.round(Number(issue.probability) * 100)}%` : 'N/A'}</strong></span>
                             </div>
                           </div>
                         </div>
@@ -282,52 +660,41 @@ export default function AdminAnalyticsPage() {
         </Card>
       </div>
 
-      {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {metricCards.map((metric) => (
+          <Card key={metric.title} className="p-4">
+            <div className="text-xs sm:text-sm font-medium text-gray-600">{metric.title}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{metric.value}</div>
+            <div className={`text-xs sm:text-sm mt-2 ${metric.growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {metric.growth >= 0 ? '↑' : '↓'} {Math.abs(metric.growth)}% from last period
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-4">
-          <div className="text-xs sm:text-sm font-medium text-gray-600">Total Users</div>
-          <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
-            {metrics.totalUsers.current.toLocaleString()}
-          </div>
-          <div className={`text-xs sm:text-sm mt-2 ${metrics.totalUsers.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-            ↑ {metrics.totalUsers.change}% from last period
+          <div className="text-xs sm:text-sm font-medium text-gray-600">Bookings In Range</div>
+          <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{analytics.totals.bookings.toLocaleString()}</div>
+          <div className={`text-xs sm:text-sm mt-2 ${analytics.growth.bookings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {analytics.growth.bookings >= 0 ? '↑' : '↓'} {Math.abs(analytics.growth.bookings)}% from last period
           </div>
         </Card>
         <Card className="p-4">
-          <div className="text-xs sm:text-sm font-medium text-gray-600">Total Businesses</div>
-          <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
-            {metrics.totalBusinesses.current.toLocaleString()}
-          </div>
-          <div className={`text-xs sm:text-sm mt-2 ${metrics.totalBusinesses.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-            ↑ {metrics.totalBusinesses.change}% from last period
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-xs sm:text-sm font-medium text-gray-600">Active Queues</div>
-          <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
-            {metrics.activeQueues.current.toLocaleString()}
-          </div>
-          <div className={`text-xs sm:text-sm mt-2 ${metrics.activeQueues.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-            ↑ {metrics.activeQueues.change}% from last period
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</div>
-          <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
-            ${metrics.totalRevenue.current.toLocaleString()}
-          </div>
-          <div className={`text-xs sm:text-sm mt-2 ${metrics.totalRevenue.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-            ↑ {metrics.totalRevenue.change}% from last period
-          </div>
+          <div className="text-xs sm:text-sm font-medium text-gray-600">Average Estimated Wait</div>
+          <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">{analytics.totals.avgWait} min</div>
+          <div className="text-xs sm:text-sm mt-2 text-indigo-600">Across system queues</div>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Industry Distribution */}
         <Card className="p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Industry Distribution</h2>
           <div className="space-y-4">
-            {industryData.map((industry) => (
+            {analytics.industries.length === 0 && (
+              <div className="text-sm text-gray-500">No industry data in selected range.</div>
+            )}
+            {analytics.industries.map((industry) => (
               <div key={industry.name}>
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-xs sm:text-sm font-medium text-gray-700">{industry.name}</span>
@@ -349,19 +716,21 @@ export default function AdminAnalyticsPage() {
           </div>
         </Card>
 
-        {/* Top Performing Businesses */}
         <Card className="p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Top Performing Businesses</h2>
           <div className="space-y-3 sm:space-y-4">
-            {topBusinesses.map((business, index) => (
-              <div key={business.name} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            {analytics.topBusinesses.length === 0 && (
+              <div className="text-sm text-gray-500">No business performance rows for selected range.</div>
+            )}
+            {analytics.topBusinesses.map((business, index) => (
+              <div key={business.id || `${business.name}-${index}`} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                 <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                   {index + 1}
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900">{business.name}</div>
                   <div className="text-xs text-gray-600">
-                    {business.customers} customers · {business.queues} queues
+                    {business.customers} customers · {business.queues} queues · {business.bookings} bookings
                   </div>
                 </div>
                 <div className="text-right">
@@ -376,17 +745,60 @@ export default function AdminAnalyticsPage() {
         </Card>
       </div>
 
-      {/* Recent Activities */}
+      <Card className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Compact Trend</h2>
+          <div className="text-xs text-gray-500">Bookings + Revenue</div>
+        </div>
+        {trendStats.series.length === 0 ? (
+          <div className="text-sm text-gray-500">No trend data in selected range.</div>
+        ) : (
+          <div className="space-y-4">
+            <div className="h-28 flex items-end gap-1">
+              {trendStats.series.map((point, index) => {
+                const bookingsHeight = trendStats.maxBookings ? Math.max(6, Math.round((point.bookings / trendStats.maxBookings) * 100)) : 6
+                const revenueHeight = trendStats.maxRevenue ? Math.max(6, Math.round((point.revenue / trendStats.maxRevenue) * 100)) : 6
+
+                return (
+                  <div key={`${point.label}-${index}`} className="flex-1 min-w-0 flex items-end justify-center gap-0.5">
+                    <div className="w-1.5 bg-blue-500/80 rounded-t" style={{ height: `${bookingsHeight}%` }} title={`${point.label}: ${point.bookings} bookings`} />
+                    <div className="w-1.5 bg-emerald-500/80 rounded-t" style={{ height: `${revenueHeight}%` }} title={`${point.label}: $${Math.round(point.revenue).toLocaleString()} revenue`} />
+                  </div>
+                )
+              })}
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-2 text-gray-600">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
+                Bookings
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+                Revenue
+              </div>
+            </div>
+            <div className="flex justify-between gap-2 text-[10px] sm:text-xs text-gray-500 overflow-hidden">
+              <span>{trendStats.series[0]?.label}</span>
+              <span>{trendStats.series[Math.floor(trendStats.series.length / 2)]?.label}</span>
+              <span>{trendStats.series[trendStats.series.length - 1]?.label}</span>
+            </div>
+          </div>
+        )}
+      </Card>
+
       <Card className="p-4 sm:p-6">
         <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Recent System Activities</h2>
         <div className="space-y-3">
-          {recentActivities.map((activity, index) => (
-            <div key={index} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg">
+          {analytics.activities.length === 0 && (
+            <div className="text-sm text-gray-500">No recent activity for selected range.</div>
+          )}
+          {analytics.activities.map((activity, index) => (
+            <div key={`${activity.action}-${index}`} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg">
               <div className={`w-2 h-2 rounded-full mt-2 ${getActivityColor(activity.type).split(' ')[1]}`} />
               <div className="flex-1">
                 <div className="text-sm font-medium text-gray-900">{activity.action}</div>
                 <div className="text-xs text-gray-600 mt-1">
-                  by {activity.user} · {activity.time}
+                  by {activity.user} · {asDateTime(activity.time)}
                 </div>
               </div>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getActivityColor(activity.type)}`}>
@@ -397,16 +809,15 @@ export default function AdminAnalyticsPage() {
         </div>
       </Card>
 
-      {/* Usage Chart Placeholder */}
-      <Card className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Usage Trends</h2>
-        <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-          <div className="text-center">
-            <div className="text-4xl mb-2">📊</div>
-            <p className="text-gray-600">Chart visualization would go here</p>
-            <p className="text-sm text-gray-500 mt-1">Integrate with a charting library like Chart.js or Recharts</p>
-          </div>
+      <Card className="mt-6 p-4 sm:p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Snapshot</h2>
+          <Badge variant="info">Live</Badge>
         </div>
+        <p className="text-sm text-gray-600 mt-3">
+          Current system snapshot includes {analytics.totals.businesses.toLocaleString()} businesses, {analytics.totals.activeQueues.toLocaleString()} active queues,
+          and {analytics.totals.bookings.toLocaleString()} bookings in the selected time range.
+        </p>
       </Card>
     </div>
   )

@@ -91,6 +91,8 @@ export default function CustomerNotifications() {
 
   const getNotificationIcon = (type) => {
     switch (type) {
+      case 'queue_update':
+        return <MessageSquare className="h-5 w-5 text-indigo-600" />
       case 'booking_confirmed':
       case 'booking_cancelled':
         return <Calendar className="h-5 w-5 text-blue-600" />

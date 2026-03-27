@@ -22,6 +22,8 @@ export default function AuthInitializer({ children }) {
       } else {
         console.warn('[AuthInitializer] ⚠️ Supabase connection issue detected')
       }
+    }).catch((error) => {
+      console.warn('[AuthInitializer] ⚠️ Initial connection check failed:', error?.message || error)
     })
   }, [])
 
@@ -44,16 +46,22 @@ export default function AuthInitializer({ children }) {
         errorMessage.includes('aborted without reason') ||
         errorMessage.includes('signal is aborted') ||
         args[0]?.name === 'AbortError'
+      const isExpectedAuthValidationError =
+        errorMessage.includes('New password should be different from the old password') ||
+        args.some((arg) => arg?.message?.includes?.('New password should be different from the old password'))
       
-      if (!isAbortError) {
+      if (!isAbortError && !isExpectedAuthValidationError) {
         originalError.apply(console, args)
       }
     }
 
+    const containsAbortSignal = (value) => {
+      const text = typeof value === 'string' ? value : value?.message || value?.toString?.() || ''
+      return text.includes('AbortError') || text.includes('aborted') || text.includes('signal is aborted')
+    }
+
     const handleError = (event) => {
-      if (event.reason?.name === 'AbortError' || 
-          event.message?.includes('aborted') ||
-          event.message?.includes('AbortError')) {
+      if (containsAbortSignal(event?.error) || containsAbortSignal(event?.message)) {
         event.preventDefault()
         event.stopPropagation()
         return false
@@ -61,9 +69,7 @@ export default function AuthInitializer({ children }) {
     }
 
     const handleUnhandledRejection = (event) => {
-      if (event.reason?.name === 'AbortError' || 
-          event.reason?.message?.includes('aborted') ||
-          event.reason?.message?.includes('AbortError')) {
+      if (containsAbortSignal(event?.reason)) {
         event.preventDefault()
         event.stopPropagation()
         return false

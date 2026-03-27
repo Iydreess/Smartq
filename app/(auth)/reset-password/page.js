@@ -1,10 +1,9 @@
 'use client'
 
 import { AuthLayout } from '@/components/layout'
-import { Button, Input } from '@/components/ui'
+import { Input } from '@/components/ui'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase/client'
 import { Lock, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
@@ -13,8 +12,6 @@ import { Lock, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react'
  * Reset Password Page - User lands here from email link
  */
 export default function ResetPasswordPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: ''
@@ -30,18 +27,74 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const verifySession = async () => {
       try {
-        // Check if there's a valid session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError || !session) {
-          console.error('No valid session found:', sessionError)
-          setError('Invalid or expired reset link')
+        const params = new URLSearchParams(window.location.search)
+        const code = params.get('code')
+        const tokenHash = params.get('token_hash')
+        const recoveryType = params.get('type')
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
+
+        // 1) Recovery links may arrive as token_hash + type=recovery.
+        if (tokenHash && recoveryType === 'recovery') {
+          const { error: verifyOtpError } = await supabase.auth.verifyOtp({
+            type: 'recovery',
+            token_hash: tokenHash,
+          })
+
+          if (verifyOtpError) {
+            console.warn('[Reset Password] Failed to verify recovery token:', verifyOtpError?.message || verifyOtpError)
+          }
         }
-        
+
+        // 2) Recovery links may arrive as URL hash tokens.
+        if (accessToken && refreshToken) {
+          const { error: setSessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+
+          if (setSessionError) {
+            console.warn('[Reset Password] Failed to restore session from hash tokens:', setSessionError?.message || setSessionError)
+          }
+        }
+
+        // 3) Recovery links may arrive as one-time code in query string.
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          if (exchangeError) {
+            console.warn('[Reset Password] Failed to exchange recovery code:', exchangeError?.message || exchangeError)
+          }
+        }
+
+        // Give Supabase a short window to finalize session from URL hash/code.
+        let session = null
+        let sessionError = null
+
+        for (let attempt = 0; attempt < 6; attempt += 1) {
+          const result = await supabase.auth.getSession()
+          session = result?.data?.session || null
+          sessionError = result?.error || null
+
+          if (session) break
+
+          await new Promise((resolve) => setTimeout(resolve, 250))
+        }
+
+        if (sessionError || !session) {
+          console.warn('[Reset Password] No valid recovery session found:', sessionError?.message || 'missing session')
+          setError('Invalid or expired reset link')
+        } else {
+          setError('')
+        }
+
         setVerifyingSession(false)
       } catch (err) {
-        console.error('Error verifying session:', err)
-        setError('Invalid or expired reset link')
+        const isAbortError = err?.name === 'AbortError' || (err?.message || '').toLowerCase().includes('aborted')
+        if (!isAbortError) {
+          console.warn('[Reset Password] Error verifying session:', err?.message || err)
+          setError('Invalid or expired reset link')
+        }
         setVerifyingSession(false)
       }
     }
@@ -53,7 +106,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     if (resetSuccess) {
       const timer = setTimeout(() => {
-        window.location.href = '/login'
+        window.location.assign('/login?message=password-reset-success')
       }, 2000)
       
       return () => clearTimeout(timer)
@@ -72,6 +125,15 @@ export default function ResetPasswordPage() {
     setLoading(true)
 
     try {
+      // Ensure we still have a valid recovery session before updating password.
+      const { data: sessionData, error: sessionErr } = await supabase.auth.getSession()
+      if (sessionErr || !sessionData?.session) {
+        setError('Invalid or expired reset link')
+        toast.error('Reset session is missing or expired. Please open a fresh reset link from your email.')
+        setLoading(false)
+        return
+      }
+
       console.log('[Reset Password] Starting password reset...')
       
       // Validation
@@ -101,20 +163,29 @@ export default function ResetPasswordPage() {
       console.log('[Reset Password] Updating user password...')
       
       // Update password in Supabase
-      const { data, error } = await supabase.auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         password: formData.password
       })
 
-      console.log('[Reset Password] Update response:', { data, error })
+      console.log('[Reset Password] Update response:', { error })
 
       if (error) {
-        console.error('[Reset Password] Error:', error)
+        const errorMessage = (error.message || '').toLowerCase()
+
+        // Expected validation error from Supabase when user reuses current password.
+        if (errorMessage.includes('different from the old password')) {
+          toast.error('Please choose a different password from your current one.')
+          setLoading(false)
+          return
+        }
+
         // Check if it's an expired/invalid token error
-        if (error.message.includes('expired') || error.message.includes('invalid') || error.message.includes('session')) {
+        if (errorMessage.includes('expired') || errorMessage.includes('invalid') || errorMessage.includes('session')) {
           setError('Invalid or expired reset link')
           toast.error('Your reset link has expired. Please request a new one.')
         } else {
           toast.error(error.message)
+          console.warn('[Reset Password] Update failed:', error?.message || error)
         }
         setLoading(false)
         return
@@ -128,11 +199,10 @@ export default function ResetPasswordPage() {
       setResetSuccess(true)
       
     } catch (error) {
-      console.error('[Reset Password] Exception:', error)
       // Only show error if it's not an abort error
       if (error.name !== 'AbortError') {
         toast.error('Failed to reset password. Please try again.')
-        console.error('Password reset error:', error)
+        console.warn('[Reset Password] Exception:', error?.message || error)
       }
       setLoading(false)
     }
@@ -183,9 +253,12 @@ export default function ResetPasswordPage() {
           </div>
 
           <Link href="/forgot-password">
-            <Button className="w-full">
+            <button
+              type="button"
+              className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-primary-700 disabled:pointer-events-none disabled:opacity-50"
+            >
               Request New Reset Link
-            </Button>
+            </button>
           </Link>
 
           <Link 
@@ -223,9 +296,12 @@ export default function ResetPasswordPage() {
           </div>
 
           <Link href="/login">
-            <Button className="w-full">
+            <button
+              type="button"
+              className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-primary-700 disabled:pointer-events-none disabled:opacity-50"
+            >
               Go to Login
-            </Button>
+            </button>
           </Link>
         </div>
       </AuthLayout>
@@ -309,9 +385,13 @@ export default function ResetPasswordPage() {
           </div>
         )}
 
-        <Button type="submit" className="w-full" disabled={loading || verifyingSession}>
+        <button
+          type="submit"
+          disabled={loading || verifyingSession}
+          className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-primary-700 disabled:pointer-events-none disabled:opacity-50"
+        >
           {loading ? 'Resetting Password...' : 'Reset Password'}
-        </Button>
+        </button>
 
         <div className="text-center">
           <Link 

@@ -1,105 +1,236 @@
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle, Button, Modal } from '@/components/ui'
+import { useUser } from '@/lib/supabase/hooks'
+import { createNotification, getBusinessesByOwner, getBusinessAppointments } from '@/lib/supabase/queries'
 import { 
-  User, Mail, Phone, MapPin, Calendar, Clock, 
-  Star, MessageSquare, Edit, Trash2, Plus, 
-  Search, Filter, Download, UserPlus, Send,
-  Eye, History, Heart, Gift, Award, TrendingUp
+  User, Mail, Phone, Calendar,
+  Star, MessageSquare,
+  Search, Download, UserPlus, Send,
+  Eye, Heart, TrendingUp, RefreshCw,
+  Clock
 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 /**
  * Customers Management Dashboard
  * Comprehensive customer database and communication tools for businesses
  */
 export default function CustomersPage() {
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const router = useRouter()
+  const { user, loading: userLoading } = useUser()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
+  const [customers, setCustomers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
+  const [campaignSending, setCampaignSending] = useState(false)
 
-  const customers = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      phone: '+254 712 345 678',
-      address: 'Kilimani, Nairobi',
-      joinDate: '2024-03-15',
-      lastVisit: '2024-09-28',
-      totalBookings: 15,
-      totalSpent: 'KSh 167,000',
-      preferredServices: ['Strategy Consulting', 'Business Planning'],
-      staffPreference: 'James Wilson',
-      loyaltyPoints: 125,
-      rating: 4.8,
-      status: 'active',
-      notes: 'Prefers morning appointments. Regular client for business consulting.',
-      tags: ['VIP', 'Regular'],
-      upcomingAppointments: 2,
-      category: 'Business'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      email: 'mchen@email.com',
-      phone: '+254 723 456 789', 
-      address: 'Westlands, Nairobi',
-      joinDate: '2024-01-10',
-      lastVisit: '2024-09-25',
-      totalBookings: 8,
-      totalSpent: 'KSh 235,000',
-      preferredServices: ['Cardiology Consultation', 'Health Checkup'],
-      staffPreference: 'Dr. Emily Rodriguez',
-      loyaltyPoints: 88,
-      rating: 5.0,
-      status: 'active',
-      notes: 'Has hypertension history. Needs regular monitoring.',
-      tags: ['Health Priority'],
-      upcomingAppointments: 1,
-      category: 'Healthcare'
-    },
-    {
-      id: 3,
-      name: 'Lisa Martinez',
-      email: 'lisa.martinez@email.com',
-      phone: '+254 734 567 890',
-      address: 'Karen, Nairobi',
-      joinDate: '2024-06-20',
-      lastVisit: '2024-09-30',
-      totalBookings: 22,
-      totalSpent: 'KSh 235,000',
-      preferredServices: ['Personal Training', 'Yoga Classes'],
-      staffPreference: 'Alex Johnson',
-      loyaltyPoints: 220,
-      rating: 4.9,
-      status: 'active',
-      notes: 'Fitness enthusiast. Prefers evening sessions.',
-      tags: ['Fitness Lover', 'Regular'],
-      upcomingAppointments: 3,
-      category: 'Fitness'
-    },
-    {
-      id: 4,
-      name: 'Robert Davis',
-      email: 'rdavis@email.com',
-      phone: '+254 745 678 901',
-      address: 'Parklands, Nairobi',
-      joinDate: '2023-11-05',
-      lastVisit: '2024-08-15',
-      totalBookings: 3,
-      totalSpent: 'KSh 60,000',
-      preferredServices: ['Tax Preparation'],
-      staffPreference: 'Robert Chang',
-      loyaltyPoints: 30,
-      rating: 4.2,
-      status: 'inactive',
-      notes: 'Seasonal client - usually books during tax season.',
-      tags: ['Seasonal'],
-      upcomingAppointments: 0,
-      category: 'Professional'
+  const getCustomerDetails = (appointment) => {
+    const customer = appointment?.customer
+    const notesText = String(appointment?.notes || '')
+    const nameMatch = notesText.match(/Name:\s*([^,]+)/i)
+    const emailMatch = notesText.match(/Email:\s*([^,]+)/i)
+    const phoneMatch = notesText.match(/Phone:\s*([^,]+)/i)
+
+    return {
+      id: customer?.id || appointment?.customer_id || emailMatch?.[1]?.trim() || appointment.id,
+      name: customer?.full_name || nameMatch?.[1]?.trim() || customer?.email || 'Unknown Customer',
+      email: customer?.email || emailMatch?.[1]?.trim() || 'N/A',
+      phone: customer?.phone || phoneMatch?.[1]?.trim() || 'N/A',
+      createdAt: customer?.created_at || appointment?.created_at,
     }
-  ]
+  }
+
+  const loadCustomers = async () => {
+    if (!user?.id) return
+    try {
+      setLoading(true)
+      const businesses = await getBusinessesByOwner(user.id)
+      const rows = await Promise.all((businesses || []).map((business) => getBusinessAppointments(business.id)))
+      const appointments = rows.flat()
+
+      const now = new Date()
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const customerMap = new Map()
+
+      for (const appointment of appointments) {
+        const c = getCustomerDetails(appointment)
+        const key = c.id
+        const existing = customerMap.get(key) || {
+          id: key,
+          name: c.name,
+          email: c.email,
+          phone: c.phone,
+          joinDate: c.createdAt,
+          lastVisit: appointment.appointment_date,
+          totalBookings: 0,
+          totalSpent: 0,
+          loyaltyPoints: 0,
+          upcomingAppointments: 0,
+          services: new Set(),
+          serviceFrequency: {},
+          appointments: [],
+          status: 'active',
+          tags: new Set(),
+        }
+
+        existing.totalBookings += 1
+        existing.totalSpent += Number(appointment?.service?.price || 0)
+        existing.loyaltyPoints += Math.max(10, Math.round(Number(appointment?.service?.price || 0) / 100))
+        if (appointment?.service?.name) {
+          existing.services.add(appointment.service.name)
+          existing.serviceFrequency[appointment.service.name] = (existing.serviceFrequency[appointment.service.name] || 0) + 1
+        }
+        if (appointment.appointment_date && (!existing.lastVisit || appointment.appointment_date > existing.lastVisit)) {
+          existing.lastVisit = appointment.appointment_date
+        }
+
+        existing.appointments.push({
+          id: appointment.id,
+          date: appointment.appointment_date,
+          status: appointment.status,
+          service: appointment?.service?.name || 'Service',
+          price: Number(appointment?.service?.price || 0),
+          startTime: appointment?.start_time,
+          notes: appointment?.customer_notes || appointment?.notes || '',
+        })
+
+        const appointmentDate = appointment.appointment_date ? new Date(appointment.appointment_date) : null
+        if (appointmentDate && appointmentDate >= todayStart && ['pending', 'confirmed', 'in-progress'].includes(appointment.status)) {
+          existing.upcomingAppointments += 1
+        }
+
+        if (existing.totalSpent >= 100000) existing.tags.add('VIP')
+        if (existing.totalBookings >= 5) existing.tags.add('Regular')
+
+        customerMap.set(key, existing)
+      }
+
+      const normalized = Array.from(customerMap.values()).map((item) => {
+        const services = Array.from(item.services)
+        const topService = Object.entries(item.serviceFrequency)
+          .sort((a, b) => b[1] - a[1])[0]?.[0] || services[0] || null
+
+        const lastVisitDate = item.lastVisit ? new Date(item.lastVisit) : null
+        const sixtyDaysAgo = new Date()
+        sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+
+        const computedStatus = !lastVisitDate || lastVisitDate < sixtyDaysAgo ? 'inactive' : 'active'
+
+        return {
+          ...item,
+          status: computedStatus,
+          topService,
+          services: services.slice(0, 3),
+          appointments: item.appointments
+            .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))
+            .slice(0, 5),
+          tags: Array.from(item.tags),
+        }
+      })
+
+      setCustomers(normalized)
+    } catch (error) {
+      console.error('[Customers] Failed to load:', error)
+      toast.error('Failed to load customers')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadCustomers()
+  }, [user?.id])
+
+  const handleOpenProfile = (customer) => {
+    setSelectedCustomer(customer)
+    setProfileModalOpen(true)
+  }
+
+  const handleSendCampaign = async () => {
+    const recipients = filteredCustomers.filter((customer) => customer.id)
+    if (!recipients.length) {
+      toast.error('No customers to notify in the current filter')
+      return
+    }
+
+    try {
+      setCampaignSending(true)
+      const results = await Promise.allSettled(
+        recipients.map((customer) =>
+          createNotification({
+            user_id: customer.id,
+            type: 'promotional',
+            title: 'Special Offer For You',
+            message: 'Thanks for being with us. Check your profile for our latest customer offer.',
+            data: { source: 'business_customers_campaign' },
+          })
+        )
+      )
+
+      const delivered = results.filter((r) => r.status === 'fulfilled').length
+      const failed = results.length - delivered
+
+      if (delivered > 0) {
+        toast.success(`Campaign sent to ${delivered} customer(s)`)
+      }
+      if (failed > 0) {
+        toast(`Failed for ${failed} customer(s)`) 
+      }
+    } catch (error) {
+      console.error('[Customers] Campaign failed:', error)
+      toast.error(error?.message || 'Failed to send campaign')
+    } finally {
+      setCampaignSending(false)
+    }
+  }
+
+  const handleExportCustomers = () => {
+    if (!filteredCustomers.length) {
+      toast.error('No customers to export')
+      return
+    }
+
+    const headers = ['Name', 'Email', 'Phone', 'Status', 'Total Bookings', 'Total Spent', 'Loyalty Points', 'Upcoming Appointments', 'Top Service', 'Last Visit']
+    const rows = filteredCustomers.map((customer) => [
+      customer.name,
+      customer.email,
+      customer.phone,
+      customer.status,
+      customer.totalBookings,
+      customer.totalSpent,
+      customer.loyaltyPoints,
+      customer.upcomingAppointments,
+      customer.topService || '',
+      customer.lastVisit || '',
+    ])
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((value) => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `customers-export-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success('Customer export downloaded')
+  }
+
+  const handleBookForCustomer = (customer) => {
+    const serviceName = customer.topService || customer.services?.[0]
+    const params = new URLSearchParams()
+    if (serviceName) params.set('serviceName', serviceName)
+    router.push(`/booking?${params.toString()}`)
+  }
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -118,16 +249,27 @@ export default function CustomersPage() {
     return matchesSearch && matchesFilter
   })
 
-  const customerStats = {
+  const customerStats = useMemo(() => ({
     total: customers.length,
     active: customers.filter(c => c.status === 'active').length,
     new: customers.filter(c => {
-      const joinDate = new Date(c.joinDate)
+      const joinDate = c.joinDate ? new Date(c.joinDate) : new Date(0)
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
       return joinDate >= thirtyDaysAgo
     }).length,
-    totalRevenue: customers.reduce((sum, c) => sum + parseInt(c.totalSpent.replace('$', '').replace(',', '')), 0)
+    totalRevenue: customers.reduce((sum, c) => sum + Number(c.totalSpent || 0), 0)
+  }), [customers])
+
+  if (userLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading customers...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -139,28 +281,33 @@ export default function CustomersPage() {
           <p className="text-secondary-600">Manage your customer database and relationships</p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => alert('Export customers functionality coming soon!')}
-          >
-            <Download className="h-4 w-4" />
-            Export
+          <Button variant="outline" className="flex items-center gap-2" onClick={loadCustomers}>
+            <RefreshCw className="h-4 w-4" />
+            Refresh
           </Button>
           <Button 
             variant="outline" 
             className="flex items-center gap-2"
-            onClick={() => alert('Send campaign functionality coming soon!')}
+            onClick={handleSendCampaign}
+            disabled={campaignSending}
           >
             <Send className="h-4 w-4" />
-            Send Campaign
+            {campaignSending ? 'Sending...' : 'Send Campaign'}
           </Button>
           <Button 
             className="flex items-center gap-2"
-            onClick={() => alert('Add customer form coming soon!')}
+            onClick={() => router.push('/dashboard/appointments')}
           >
             <UserPlus className="h-4 w-4" />
-            Add Customer
+            View Appointments
+          </Button>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={handleExportCustomers}
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
           </Button>
         </div>
       </div>
@@ -206,7 +353,7 @@ export default function CustomersPage() {
               <span className="text-green-600 font-bold text-lg">$</span>
               <div>
                 <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold">${customerStats.totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold">KSh {customerStats.totalRevenue.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -261,10 +408,6 @@ export default function CustomersPage() {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(customer.status)}`}>
                           {customer.status}
                         </span>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                          <span className="text-xs text-gray-600">{customer.rating}</span>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -272,7 +415,7 @@ export default function CustomersPage() {
                     size="sm" 
                     variant="outline" 
                     className="h-8 w-8 p-0"
-                    onClick={() => alert(`View details for ${customer.name}`)}
+                    onClick={() => handleOpenProfile(customer)}
                     title="View customer details"
                   >
                     <Eye className="h-3 w-3" />
@@ -289,10 +432,6 @@ export default function CustomersPage() {
                     <Phone className="h-3 w-3" />
                     <span>{customer.phone}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <MapPin className="h-3 w-3" />
-                    <span className="truncate">{customer.address}</span>
-                  </div>
                 </div>
 
                 {/* Stats Grid */}
@@ -303,7 +442,7 @@ export default function CustomersPage() {
                   </div>
                   <div className="bg-gray-50 rounded p-2">
                     <p className="text-gray-600">Total Spent</p>
-                    <p className="font-semibold text-green-600">{customer.totalSpent}</p>
+                    <p className="font-semibold text-green-600">KSh {Number(customer.totalSpent || 0).toLocaleString()}</p>
                   </div>
                   <div className="bg-gray-50 rounded p-2">
                     <p className="text-gray-600">Loyalty Points</p>
@@ -322,6 +461,9 @@ export default function CustomersPage() {
                       {tag}
                     </span>
                   ))}
+                  {!customer.tags.length && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">Standard</span>
+                  )}
                 </div>
 
                 {/* Quick Actions */}
@@ -330,16 +472,16 @@ export default function CustomersPage() {
                     size="sm" 
                     variant="outline" 
                     className="flex-1"
-                    onClick={() => alert(`Edit ${customer.name}`)}
+                    onClick={() => handleOpenProfile(customer)}
                   >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
+                    <User className="h-3 w-3 mr-1" />
+                    Profile
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline" 
                     className="flex-1"
-                    onClick={() => alert(`Contact ${customer.name}`)}
+                    onClick={() => window.open(`mailto:${customer.email}`)}
                   >
                     <MessageSquare className="h-3 w-3 mr-1" />
                     Contact
@@ -348,7 +490,7 @@ export default function CustomersPage() {
                     size="sm" 
                     variant="outline" 
                     className="flex-1"
-                    onClick={() => alert(`Book appointment for ${customer.name}`)}
+                    onClick={() => handleBookForCustomer(customer)}
                   >
                     <Calendar className="h-3 w-3 mr-1" />
                     Book
@@ -358,50 +500,88 @@ export default function CustomersPage() {
             </CardContent>
           </Card>
         ))}
+
+        {filteredCustomers.length === 0 && (
+          <Card className="col-span-full">
+            <CardContent className="p-6 text-sm text-secondary-500">
+              No customers found. Customers appear here after real bookings are made.
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      {/* Quick Actions Panel */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Customer Management Tools</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Add new customer functionality coming soon!')}
-            >
-              <UserPlus className="h-5 w-5" />
-              <span>Add New Customer</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Send newsletter functionality coming soon!')}
-            >
-              <Send className="h-5 w-5" />
-              <span>Send Newsletter</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Loyalty rewards functionality coming soon!')}
-            >
-              <Gift className="h-5 w-5" />
-              <span>Loyalty Rewards</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Export data functionality coming soon!')}
-            >
-              <Download className="h-5 w-5" />
-              <span>Export Data</span>
-            </Button>
+      <Modal
+        isOpen={profileModalOpen}
+        onClose={() => {
+          setProfileModalOpen(false)
+          setSelectedCustomer(null)
+        }}
+        title={selectedCustomer ? `${selectedCustomer.name} Profile` : 'Customer Profile'}
+        size="lg"
+      >
+        {selectedCustomer && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3 bg-secondary-50 rounded-lg">
+                <p className="text-xs text-secondary-600">Email</p>
+                <p className="font-medium text-secondary-900 break-all">{selectedCustomer.email}</p>
+              </div>
+              <div className="p-3 bg-secondary-50 rounded-lg">
+                <p className="text-xs text-secondary-600">Phone</p>
+                <p className="font-medium text-secondary-900">{selectedCustomer.phone}</p>
+              </div>
+              <div className="p-3 bg-secondary-50 rounded-lg">
+                <p className="text-xs text-secondary-600">Top Service</p>
+                <p className="font-medium text-secondary-900">{selectedCustomer.topService || 'N/A'}</p>
+              </div>
+              <div className="p-3 bg-secondary-50 rounded-lg">
+                <p className="text-xs text-secondary-600">Last Visit</p>
+                <p className="font-medium text-secondary-900">{selectedCustomer.lastVisit || 'N/A'}</p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-secondary-900 mb-2 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Recent Appointments
+              </h4>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {(selectedCustomer.appointments || []).map((appointment) => (
+                  <div key={appointment.id} className="p-3 border border-secondary-200 rounded-lg">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-secondary-900">{appointment.service}</p>
+                        <p className="text-sm text-secondary-600">{appointment.date || 'Date TBD'} · {appointment.startTime || 'Time TBD'}</p>
+                      </div>
+                      <span className={`px-2 py-1 text-xs rounded-full border ${getStatusColor(appointment.status || 'active')}`}>
+                        {appointment.status || 'unknown'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {!(selectedCustomer.appointments || []).length && (
+                  <p className="text-sm text-secondary-500">No appointment history available.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-2 border-t">
+              <Button variant="outline" onClick={() => window.open(`mailto:${selectedCustomer.email}`)}>
+                <Mail className="h-4 w-4 mr-2" />
+                Email
+              </Button>
+              <Button variant="outline" onClick={() => window.open(`tel:${selectedCustomer.phone}`)}>
+                <Phone className="h-4 w-4 mr-2" />
+                Call
+              </Button>
+              <Button onClick={() => handleBookForCustomer(selectedCustomer)}>
+                <Calendar className="h-4 w-4 mr-2" />
+                New Booking
+              </Button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </Modal>
     </div>
   )
 }

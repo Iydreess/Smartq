@@ -2,24 +2,55 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
 import { 
   Calendar, Clock, User, Star, TrendingUp, 
   CheckCircle, AlertCircle, Gift, Award,
-  Phone, MessageSquare, CreditCard, MapPin,
+  MessageSquare, MapPin,
   Bell, Eye, Plus, RefreshCw
 } from 'lucide-react'
 import { useUser } from '@/lib/supabase/hooks'
 import { getCustomerAppointments } from '@/lib/supabase/queries'
+import toast from 'react-hot-toast'
 
 /**
  * Customer Dashboard - Main overview page for customers
  */
 export default function CustomerDashboard() {
-  const [notifications, setNotifications] = useState(3)
+  const router = useRouter()
   const { user, loading } = useUser()
-  const [upcomingAppointments, setUpcomingAppointments] = useState([])
+  const [allAppointments, setAllAppointments] = useState([])
   const [loadingAppointments, setLoadingAppointments] = useState(true)
+
+  const asText = (value, fallback = 'N/A') => {
+    if (value === null || value === undefined) return fallback
+    if (typeof value === 'string' || typeof value === 'number') return value
+    if (typeof value === 'object') return value.name || value.full_name || fallback
+    return fallback
+  }
+
+  const formatAppointmentDate = (appointment) => {
+    if (appointment.date) return appointment.date
+    if (!appointment.appointment_date) return 'Date TBD'
+    return new Date(appointment.appointment_date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  const formatAppointmentTime = (appointment) => {
+    if (appointment.time) return appointment.time
+    if (!appointment.start_time) return 'Time TBD'
+    const [hourStr, minuteStr] = String(appointment.start_time).split(':')
+    const hour = Number(hourStr)
+    const minute = Number(minuteStr)
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return String(appointment.start_time)
+    const period = hour >= 12 ? 'PM' : 'AM'
+    const normalizedHour = hour % 12 || 12
+    return `${normalizedHour}:${String(minute).padStart(2, '0')} ${period}`
+  }
 
   // Fetch customer appointments
   useEffect(() => {
@@ -31,9 +62,9 @@ export default function CustomerDashboard() {
       
       try {
         console.log('[CustomerDashboard] Fetching appointments for user:', user.id)
-        const appointments = await getCustomerAppointments(user.id, { upcoming: true })
+        const appointments = await getCustomerAppointments(user.id)
         console.log('[CustomerDashboard] Appointments fetched:', appointments)
-        setUpcomingAppointments(appointments || [])
+        setAllAppointments(appointments || [])
       } catch (error) {
         console.error('[CustomerDashboard] Error fetching appointments:', error)
       } finally {
@@ -44,17 +75,99 @@ export default function CustomerDashboard() {
     fetchAppointments()
   }, [user?.id, loading])
 
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  const upcomingAppointments = allAppointments.filter((appointment) => {
+    if (!appointment.appointment_date) return false
+    const appointmentDate = new Date(appointment.appointment_date)
+    const status = appointment.status || ''
+    return appointmentDate >= todayStart && ['pending', 'confirmed', 'in-progress'].includes(status)
+  })
+
+  const completedAppointments = allAppointments.filter((appointment) => appointment.status === 'completed')
+
+  const serviceFrequency = allAppointments.reduce((acc, appointment) => {
+    const serviceName = asText(appointment.service, 'Service')
+    if (!acc[serviceName]) {
+      acc[serviceName] = {
+        name: serviceName,
+        count: 0,
+        price: appointment.service?.price || 0,
+        duration: appointment.service?.duration || 0,
+      }
+    }
+    acc[serviceName].count += 1
+    return acc
+  }, {})
+
+  const topServices = Object.values(serviceFrequency)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+
+  const loyaltyPoints = completedAppointments.reduce((sum, appointment) => {
+    const servicePrice = Number(appointment.service?.price || 0)
+    return sum + Math.max(25, Math.round(servicePrice / 100))
+  }, 0)
+
+  const nextRewardTarget = Math.ceil(Math.max(500, loyaltyPoints + 1) / 500) * 500
+  const pointsToNextReward = Math.max(0, nextRewardTarget - loyaltyPoints)
+  const rewardProgressPercent = nextRewardTarget > 0
+    ? Math.min(100, Math.round((loyaltyPoints / nextRewardTarget) * 100))
+    : 0
+
+  const recentActivity = allAppointments
+    .slice(0, 4)
+    .map((appointment) => {
+      const status = appointment.status || 'pending'
+      const isPositive = status === 'completed' || status === 'confirmed'
+      return {
+        id: appointment.id,
+        message: `${asText(appointment.service, 'Service')} appointment ${status}`,
+        date: appointment.created_at
+          ? new Date(appointment.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+          : 'Recently',
+        icon: isPositive ? CheckCircle : AlertCircle,
+        color: isPositive ? 'text-success-600' : 'text-primary-600',
+      }
+    })
+
+  const handleReschedule = (appointment) => {
+    const params = new URLSearchParams()
+    params.set('reschedule', 'true')
+    params.set('fromBookingId', appointment.id)
+
+    if (appointment.service_id) {
+      params.set('serviceId', appointment.service_id)
+    }
+
+    const serviceName = asText(appointment.service, '')
+    if (serviceName) {
+      params.set('serviceName', serviceName)
+    }
+
+    if (appointment.appointment_date) {
+      params.set('appointmentDate', appointment.appointment_date)
+    }
+
+    if (appointment.start_time) {
+      params.set('appointmentTime', appointment.start_time)
+    }
+
+    router.push(`/booking?${params.toString()}`)
+  }
+
   // Customer data from logged-in user
   const customerData = {
     name: user?.full_name || user?.email || 'Guest',
     email: user?.email || '',
     phone: user?.phone || 'Not provided',
     memberSince: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
-    loyaltyPoints: 1250, // TODO: Calculate from database
-    totalBookings: 15, // TODO: Get from database
+    loyaltyPoints,
+    totalBookings: allAppointments.length,
     upcomingBookings: upcomingAppointments.length,
-    favoriteService: 'Strategy Consulting', // TODO: Calculate from database
-    preferredStaff: 'James Wilson' // TODO: Get from database
+    favoriteService: topServices[0]?.name || 'N/A',
+    preferredStaff: 'N/A'
   }
 
   // Show loading state
@@ -68,33 +181,6 @@ export default function CustomerDashboard() {
       </div>
     )
   }
-
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'booking',
-      message: 'Strategy Consulting appointment confirmed',
-      date: '2025-09-28',
-      icon: CheckCircle,
-      color: 'text-success-600'
-    },
-    {
-      id: 2,
-      type: 'points',
-      message: 'Earned 50 loyalty points',
-      date: '2025-09-25',
-      icon: Award,
-      color: 'text-primary-600'
-    },
-    {
-      id: 3,
-      type: 'reminder',
-      message: 'Appointment reminder sent',
-      date: '2025-09-24',
-      icon: Bell,
-      color: 'text-primary-600'
-    }
-  ]
 
   const quickStats = [
     {
@@ -133,10 +219,7 @@ export default function CustomerDashboard() {
             <p className="text-primary-100">You have {customerData.upcomingBookings} upcoming appointments and {customerData.loyaltyPoints} loyalty points to redeem.</p>
           </div>
           <Link href="/customer/services">
-            <Button 
-              className="bg-white text-primary-600 hover:bg-primary-50"
-              onClick={() => console.log('Navigating to services')}
-            >
+            <Button className="bg-white text-primary-600 hover:bg-primary-50">
               Book New Service
             </Button>
           </Link>
@@ -182,20 +265,20 @@ export default function CustomerDashboard() {
                 <div key={appointment.id} className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-secondary-900">{appointment.service}</h3>
-                      <p className="text-sm text-secondary-600">with {appointment.staff}</p>
+                      <h3 className="font-semibold text-secondary-900">{asText(appointment.service, 'Service')}</h3>
+                      <p className="text-sm text-secondary-600">with {asText(appointment.staff, 'Staff')}</p>
                       <div className="flex items-center gap-4 mt-2 text-sm text-secondary-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{appointment.date}</span>
+                          <span>{formatAppointmentDate(appointment)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span>{appointment.time}</span>
+                          <span>{formatAppointmentTime(appointment)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          <span>{appointment.location}</span>
+                          <span>{asText(appointment.business?.address || appointment.location, 'Main Location')}</span>
                         </div>
                       </div>
                     </div>
@@ -207,7 +290,7 @@ export default function CustomerDashboard() {
                         size="sm" 
                         variant="outline" 
                         className="text-xs"
-                        onClick={() => alert(`Reschedule ${appointment.service}`)}
+                        onClick={() => handleReschedule(appointment)}
                       >
                         Reschedule
                       </Button>
@@ -247,6 +330,10 @@ export default function CustomerDashboard() {
                   </div>
                 </div>
               ))}
+
+              {recentActivity.length === 0 && (
+                <p className="text-sm text-secondary-500">No recent booking activity yet.</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -307,10 +394,10 @@ export default function CustomerDashboard() {
                 <div className="mt-3 bg-white rounded p-2">
                   <div className="flex justify-between text-sm">
                     <span>Progress to next reward</span>
-                    <span>250 points to go</span>
+                    <span>{pointsToNextReward} points to go</span>
                   </div>
                   <div className="mt-1 w-full bg-secondary-200 rounded-full h-2">
-                    <div className="bg-primary-600 h-2 rounded-full" style={{ width: '80%' }}></div>
+                    <div className="bg-primary-600 h-2 rounded-full" style={{ width: `${rewardProgressPercent}%` }}></div>
                   </div>
                 </div>
               </div>
@@ -326,7 +413,10 @@ export default function CustomerDashboard() {
                     <Button 
                       size="sm" 
                       className="bg-warning-600 hover:bg-warning-700"
-                      onClick={() => alert('Redeeming 10% Off reward')}
+                      onClick={() => {
+                        toast.success('Reward redemption request submitted')
+                        router.push('/customer/profile')
+                      }}
                     >
                       Redeem
                     </Button>
@@ -341,7 +431,10 @@ export default function CustomerDashboard() {
                     <Button 
                       size="sm" 
                       className="bg-primary-600 hover:bg-primary-700"
-                      onClick={() => alert('Redeeming Priority Queue Access')}
+                      onClick={() => {
+                        toast.success('Priority access reward activated')
+                        router.push('/customer/queue')
+                      }}
                     >
                       Redeem
                     </Button>
@@ -359,55 +452,36 @@ export default function CustomerDashboard() {
           <CardTitle>Your Favorite Services</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-secondary-900">Strategy Consulting</h3>
-                  <p className="text-sm text-secondary-600">KSh 40,000 • 90 min</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-3 w-3 text-warning-500 fill-current" />
-                    <span className="text-sm text-secondary-600">4.9 rating</span>
+          {topServices.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {topServices.map((service) => (
+                <div key={service.name} className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-secondary-900">{service.name}</h3>
+                      <p className="text-sm text-secondary-600">
+                        KSh {Number(service.price || 0).toLocaleString()} • {service.duration || 'TBD'} min
+                      </p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-3 w-3 text-warning-500 fill-current" />
+                        <span className="text-sm text-secondary-600">Booked {service.count}x</span>
+                      </div>
+                    </div>
+                    <Link href="/customer/services">
+                      <Button size="sm">Book Now</Button>
+                    </Link>
                   </div>
                 </div>
-                <Link href="/customer/services">
-                  <Button size="sm">Book Now</Button>
-                </Link>
-              </div>
+              ))}
             </div>
-            
-            <div className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-secondary-900">Business Planning</h3>
-                  <p className="text-sm text-secondary-600">KSh 33,400 • 60 min</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-3 w-3 text-warning-500 fill-current" />
-                    <span className="text-sm text-secondary-600">4.8 rating</span>
-                  </div>
-                </div>
-                <Link href="/customer/services">
-                  <Button size="sm">Book Now</Button>
-                </Link>
-              </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-secondary-500 mb-3">No booking history yet. Your top services will appear here.</p>
+              <Link href="/customer/services">
+                <Button>Explore Services</Button>
+              </Link>
             </div>
-            
-            <div className="border rounded-lg p-4 hover:bg-secondary-50 transition-colors cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-secondary-900">Financial Review</h3>
-                  <p className="text-sm text-secondary-600">KSh 26,700 • 45 min</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-3 w-3 text-warning-500 fill-current" />
-                    <span className="text-sm text-secondary-600">4.7 rating</span>
-                  </div>
-                </div>
-                <Link href="/customer/services">
-                  <Button size="sm">Book Now</Button>
-                </Link>
-              </div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

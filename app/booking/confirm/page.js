@@ -1,18 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button, Card, CardContent } from '@/components/ui'
 import { MainLayout } from '@/components/layout'
 import { Calendar, Clock, User, MapPin, Phone, Mail, CheckCircle, ArrowLeft } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { useUser } from '@/lib/supabase/hooks'
+import { getActiveQueuesByService, getCustomerQueueEntries, joinQueue } from '@/lib/supabase/queries'
 
 /**
  * Booking Confirmation Page
  * Handles appointment booking and confirmation process
  */
 export default function BookingConfirmPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const { user } = useUser()
   const [bookingData, setBookingData] = useState(null)
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
@@ -22,25 +27,34 @@ export default function BookingConfirmPage() {
   })
   const [isBooked, setIsBooked] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [serviceQueues, setServiceQueues] = useState([])
+  const [loadingQueues, setLoadingQueues] = useState(false)
+  const [joiningQueueId, setJoiningQueueId] = useState(null)
+  const [joinedQueueIds, setJoinedQueueIds] = useState([])
 
   useEffect(() => {
     // Get booking data from URL parameters - support both old and new formats
     const service = searchParams.get('service')
     const personnel = searchParams.get('personnel')
+    const business = searchParams.get('business')
     const time = searchParams.get('time')
+    const date = searchParams.get('date')
     const day = searchParams.get('day')
     const category = searchParams.get('category')
     const duration = searchParams.get('duration')
     const price = searchParams.get('price')
+    const booked = searchParams.get('booked') === '1'
 
-    // More flexible validation - only require service and personnel at minimum
-    if (service && personnel) {
+    // Modern flow only guarantees service. Fall back to business/service team for provider details.
+    if (service) {
+      const providerName = personnel || business || 'Service Team'
+
       // In a real app, you would fetch this data from your backend
       setBookingData({
         service: service,
-        personnel: personnel,
+        personnel: providerName,
         time: time || 'TBD',
-        day: day || 'TBD',
+        day: day || date || 'TBD',
         // Use actual data from URL parameters or fallback to mock data
         serviceInfo: {
           name: service,
@@ -49,18 +63,50 @@ export default function BookingConfirmPage() {
           price: price || 'Contact for pricing'
         },
         personnelInfo: {
-          name: personnel,
+          name: providerName,
           specialty: category ? `${category} Specialist` : 'Professional Service Provider',
           photo: '/api/placeholder/150/150',
           rating: 4.9,
-          location: category ? `${category} Center` : 'Service Location',
+          location: business || (category ? `${category} Center` : 'Service Location'),
           address: '123 Main St, City Center',
           phone: '+1 (555) 123-4567',
-          email: `${personnel.toLowerCase().replace(/[\s&]/g, '.').replace(/[^a-z.]/g, '')}@smartq.com`
+          email: `${providerName.toLowerCase().replace(/[\s&]/g, '.').replace(/[^a-z.]/g, '') || 'support'}@smartq.com`
         }
       })
+
+      if (booked) {
+        setIsBooked(true)
+      }
     }
   }, [searchParams])
+
+  useEffect(() => {
+    const serviceId = searchParams.get('serviceId')
+    const businessId = searchParams.get('businessId')
+
+    if (!isBooked || !serviceId) return
+
+    async function loadServiceQueues() {
+      try {
+        setLoadingQueues(true)
+        const [queues, myEntries] = await Promise.all([
+          getActiveQueuesByService(serviceId, businessId || null),
+          user ? getCustomerQueueEntries(user.id) : Promise.resolve([]),
+        ])
+
+        const joinedIds = new Set((myEntries || []).map((entry) => entry.queue_id).filter(Boolean))
+        setServiceQueues(queues || [])
+        setJoinedQueueIds(Array.from(joinedIds))
+      } catch (error) {
+        console.error('Error loading service queues:', error)
+        toast.error('Failed to load service queues')
+      } finally {
+        setLoadingQueues(false)
+      }
+    }
+
+    loadServiceQueues()
+  }, [isBooked, searchParams, user])
 
   const handleBooking = async (e) => {
     e.preventDefault()
@@ -74,7 +120,37 @@ export default function BookingConfirmPage() {
   }
 
   const formatDay = (day) => {
+    if (!day) return 'TBD'
+    // If this is already a full date like "3/25/2026", return as-is.
+    if (day.includes('/') || day.includes(',')) return day
     return day.charAt(0).toUpperCase() + day.slice(1)
+  }
+
+  const handleJoinServiceQueue = async (queue) => {
+    if (!user) {
+      toast.error('Please sign in to join this queue')
+      return
+    }
+
+    if (joinedQueueIds.includes(queue.id)) {
+      toast('You already joined this queue.')
+      return
+    }
+
+    try {
+      setJoiningQueueId(queue.id)
+      await joinQueue(queue.id, user.id, `Joined after booking: ${bookingData?.serviceInfo?.name || 'Service'}`)
+      toast.success(`Joined ${queue.name}`)
+      setJoinedQueueIds((prev) => (prev.includes(queue.id) ? prev : [...prev, queue.id]))
+      setTimeout(() => {
+        router.push('/customer/queue')
+      }, 700)
+    } catch (error) {
+      console.error('Error joining service queue:', error)
+      toast.error(error.message || 'Failed to join queue')
+    } finally {
+      setJoiningQueueId(null)
+    }
   }
 
   if (!bookingData) {
@@ -148,6 +224,34 @@ export default function BookingConfirmPage() {
                 <p className="text-sm text-primary-800">
                   📧 A confirmation email has been sent to <strong>{customerInfo.email}</strong>
                 </p>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 mb-6 border border-secondary-200 text-left">
+                <h3 className="font-semibold text-secondary-900 mb-3">Available Queues For This Service</h3>
+                {loadingQueues ? (
+                  <p className="text-sm text-secondary-600">Loading available queues...</p>
+                ) : serviceQueues.length === 0 ? (
+                  <p className="text-sm text-secondary-600">No active queues are available for this service right now.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {serviceQueues.map((queue) => (
+                      <div key={queue.id} className="border rounded-lg p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                          <p className="font-medium text-secondary-900">{queue.name}</p>
+                          <p className="text-sm text-secondary-600">{queue.business?.name || 'Business'} • {queue.peopleInQueue || 0} in queue</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleJoinServiceQueue(queue)}
+                          loading={joiningQueueId === queue.id}
+                          disabled={joinedQueueIds.includes(queue.id)}
+                        >
+                          {joinedQueueIds.includes(queue.id) ? 'Already Joined' : 'Join Queue'}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">

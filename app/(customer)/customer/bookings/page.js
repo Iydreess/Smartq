@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
+import { useRouter } from 'next/navigation'
+import { Card, CardContent, CardHeader, CardTitle, Button, Modal } from '@/components/ui'
 import { 
   Calendar, Clock, User, MapPin, Phone, Mail,
   Edit, Trash2, CheckCircle, XCircle, AlertCircle,
@@ -16,29 +17,143 @@ import toast from 'react-hot-toast'
  * Customer Bookings Page - Manage all customer bookings and history
  */
 export default function CustomerBookings() {
+  const router = useRouter()
   const { user, loading: userLoading } = useUser()
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterPeriod, setFilterPeriod] = useState('upcoming')
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedBooking, setSelectedBooking] = useState(null)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [cancellingBookingId, setCancellingBookingId] = useState(null)
+
+  const asText = (value, fallback = 'N/A') => {
+    if (value === null || value === undefined) return fallback
+    if (typeof value === 'string' || typeof value === 'number') return value
+    if (typeof value === 'object') return value.name || value.full_name || fallback
+    return fallback
+  }
+
+  const formatDate = (value) => {
+    if (!value) return 'Date TBD'
+    return new Date(value).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
+  const formatTime = (value) => {
+    if (!value) return 'Time TBD'
+    const [hourStr, minuteStr] = String(value).split(':')
+    const hour = Number(hourStr)
+    const minute = Number(minuteStr)
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return String(value)
+    const period = hour >= 12 ? 'PM' : 'AM'
+    const normalizedHour = hour % 12 || 12
+    return `${normalizedHour}:${String(minute).padStart(2, '0')} ${period}`
+  }
+
+  const normalizeBookings = (appointments) => {
+    return (appointments || []).map((appointment) => {
+      const priceNumber = Number(appointment.service?.price || 0)
+      const durationNumber = Number(appointment.service?.duration || 0)
+
+      return {
+        ...appointment,
+        dateValue: appointment.appointment_date,
+        date: formatDate(appointment.appointment_date),
+        time: formatTime(appointment.start_time),
+        service: asText(appointment.service, 'Service'),
+        staff: asText(appointment.staff, 'Staff'),
+        location: asText(appointment.business?.address, 'Main Location'),
+        duration: durationNumber > 0 ? `${durationNumber} min` : 'TBD',
+        price: `$${priceNumber.toLocaleString()}`,
+        bookingRef: appointment.id ? String(appointment.id).slice(0, 8).toUpperCase() : 'N/A',
+        canReschedule: ['pending', 'confirmed'].includes(appointment.status),
+        canCancel: ['pending', 'confirmed'].includes(appointment.status),
+        rating: appointment.rating || null,
+      }
+    })
+  }
+
+  const fetchBookings = async () => {
+    if (!user) return
+    
+    try {
+      const appointments = await getCustomerAppointments(user.id)
+      setBookings(normalizeBookings(appointments))
+    } catch (error) {
+      console.error('Error fetching bookings:', error)
+      toast.error('Failed to load bookings')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function fetchBookings() {
-      if (!user) return
-      
-      try {
-        const appointments = await getCustomerAppointments(user.id)
-        setBookings(appointments || [])
-      } catch (error) {
-        console.error('Error fetching bookings:', error)
-        toast.error('Failed to load bookings')
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchBookings()
   }, [user])
+
+  const handleReschedule = (booking) => {
+    if (!booking.canReschedule) return
+
+    const params = new URLSearchParams()
+    params.set('reschedule', 'true')
+    params.set('fromBookingId', booking.id)
+
+    if (booking.service_id) {
+      params.set('serviceId', booking.service_id)
+    }
+
+    if (booking.service) {
+      params.set('serviceName', booking.service)
+    }
+
+    if (booking.dateValue) {
+      params.set('appointmentDate', booking.dateValue)
+    }
+
+    if (booking.start_time) {
+      params.set('appointmentTime', booking.start_time)
+    }
+
+    router.push(`/booking?${params.toString()}`)
+  }
+
+  const handleCancel = async (booking) => {
+    if (!booking.canCancel) return
+
+    const confirmed = confirm(`Cancel booking ${booking.bookingRef}?`)
+    if (!confirmed) return
+
+    try {
+      setCancellingBookingId(booking.id)
+      await cancelAppointment(booking.id, 'Cancelled by customer')
+
+      setBookings((prev) => prev.map((item) => {
+        if (item.id !== booking.id) return item
+        return {
+          ...item,
+          status: 'cancelled',
+          canCancel: false,
+          canReschedule: false,
+        }
+      }))
+
+      toast.success('Booking cancelled successfully')
+    } catch (error) {
+      console.error('Error cancelling booking:', error)
+      toast.error('Failed to cancel booking')
+    } finally {
+      setCancellingBookingId(null)
+    }
+  }
+
+  const handleViewDetails = (booking) => {
+    setSelectedBooking(booking)
+    setShowDetailsModal(true)
+  }
 
   if (userLoading || loading) {
     return (
@@ -76,7 +191,7 @@ export default function CustomerBookings() {
   const filteredBookings = bookings.filter(booking => {
     const matchesStatus = filterStatus === 'all' || booking.status === filterStatus
     const currentDate = new Date()
-    const bookingDate = new Date(booking.date)
+    const bookingDate = booking.dateValue ? new Date(booking.dateValue) : new Date(0)
     
     let matchesPeriod = true
     if (filterPeriod === 'upcoming') {
@@ -90,7 +205,7 @@ export default function CustomerBookings() {
 
   const bookingStats = {
     total: bookings.length,
-    upcoming: bookings.filter(b => new Date(b.date) >= new Date() && b.status === 'confirmed').length,
+    upcoming: bookings.filter(b => b.dateValue && new Date(b.dateValue) >= new Date() && b.status === 'confirmed').length,
     completed: bookings.filter(b => b.status === 'completed').length,
     totalSpent: bookings
       .filter(b => b.status === 'completed')
@@ -213,7 +328,7 @@ export default function CustomerBookings() {
             <Button 
               variant="outline" 
               className="flex items-center gap-2"
-              onClick={() => window.location.reload()}
+              onClick={fetchBookings}
             >
               <RefreshCw className="h-4 w-4" />
               Refresh
@@ -283,7 +398,7 @@ export default function CustomerBookings() {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => alert(`Reschedule booking ${booking.bookingRef}`)}
+                        onClick={() => handleReschedule(booking)}
                       >
                         <Edit className="h-3 w-3 mr-1" />
                         Reschedule
@@ -294,7 +409,8 @@ export default function CustomerBookings() {
                         size="sm" 
                         variant="outline" 
                         className="text-red-600 hover:text-red-700"
-                        onClick={() => confirm(`Cancel booking ${booking.bookingRef}?`) && alert('Booking cancelled')}
+                        loading={cancellingBookingId === booking.id}
+                        onClick={() => handleCancel(booking)}
                       >
                         <Trash2 className="h-3 w-3 mr-1" />
                         Cancel
@@ -313,7 +429,7 @@ export default function CustomerBookings() {
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => alert(`View details for ${booking.bookingRef}`)}
+                      onClick={() => handleViewDetails(booking)}
                     >
                       <Eye className="h-3 w-3 mr-1" />
                       View Details
@@ -351,6 +467,73 @@ export default function CustomerBookings() {
           </Card>
         )}
       </div>
+
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title="Booking Details"
+        size="lg"
+      >
+        {selectedBooking && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Service</p>
+                <p className="font-semibold text-secondary-900">{selectedBooking.service}</p>
+              </div>
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Status</p>
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(selectedBooking.status)}`}>
+                  {getStatusIcon(selectedBooking.status)}
+                  {selectedBooking.status.charAt(0).toUpperCase() + selectedBooking.status.slice(1)}
+                </span>
+              </div>
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Date</p>
+                <p className="font-semibold text-secondary-900">{selectedBooking.date}</p>
+              </div>
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Time</p>
+                <p className="font-semibold text-secondary-900">{selectedBooking.time}</p>
+              </div>
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Staff</p>
+                <p className="font-semibold text-secondary-900">{selectedBooking.staff}</p>
+              </div>
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Location</p>
+                <p className="font-semibold text-secondary-900">{selectedBooking.location}</p>
+              </div>
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Duration</p>
+                <p className="font-semibold text-secondary-900">{selectedBooking.duration}</p>
+              </div>
+              <div className="bg-secondary-50 rounded-lg p-3">
+                <p className="text-xs text-secondary-600 mb-1">Price</p>
+                <p className="font-semibold text-secondary-900">{selectedBooking.price}</p>
+              </div>
+            </div>
+
+            <div className="bg-secondary-50 rounded-lg p-3">
+              <p className="text-xs text-secondary-600 mb-1">Booking Reference</p>
+              <p className="font-mono font-semibold text-secondary-900">{selectedBooking.bookingRef}</p>
+            </div>
+
+            {selectedBooking.notes && (
+              <div className="bg-blue-50 rounded-lg p-3">
+                <p className="text-xs text-blue-700 mb-1">Notes</p>
+                <p className="text-sm text-blue-900">{selectedBooking.notes}</p>
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setShowDetailsModal(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   )
 }

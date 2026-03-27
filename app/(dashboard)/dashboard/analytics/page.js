@@ -1,126 +1,267 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui'
-import { 
-  BarChart3, TrendingUp, TrendingDown, Users, Calendar,
-  DollarSign, Star, Clock, MapPin, Filter, Download,
-  RefreshCw, Eye, ArrowUp, ArrowDown, Activity,
-  Target, Award, Zap, Heart, Phone, MessageSquare,
-  AlertTriangle, CheckCircle, AlertCircle
+import { useUser } from '@/lib/supabase/hooks'
+import { getBusinessesByOwner, getBusinessAppointments } from '@/lib/supabase/queries'
+import {
+  BarChart3,
+  Users,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  RefreshCw,
+  Star,
+  Download,
+  CheckCircle,
+  Clock,
 } from 'lucide-react'
-import { predictSystemIssues } from '@/lib/ai/systemMonitoring'
+import toast from 'react-hot-toast'
 
-/**
- * Analytics Dashboard
- * Comprehensive business insights, reports, performance metrics, and data visualization
- */
 export default function AnalyticsPage() {
-  const [dateRange, setDateRange] = useState('30d') // '7d', '30d', '90d', '1y'
-  const [selectedMetric, setSelectedMetric] = useState('revenue')
-  const [systemHealth, setSystemHealth] = useState({
-    success: false,
-    issues: [],
-    healthScore: 100,
-    insights: { summary: 'Initializing...', recommendations: [] }
-  })
-  const [loadingHealth, setLoadingHealth] = useState(true)
-  
-  // Load system health predictions
-  useEffect(() => {
-    async function loadSystemHealth() {
-      setLoadingHealth(true)
-      try {
-        const health = await predictSystemIssues()
-        setSystemHealth(health)
-      } catch (error) {
-        console.error('Error loading system health:', error)
-        setSystemHealth({
-          success: false,
-          issues: [],
-          healthScore: 0,
-          insights: { summary: 'Unable to load system health data', recommendations: [] }
-        })
-      } finally {
-        setLoadingHealth(false)
+  const { user, loading: userLoading } = useUser()
+  const [dateRange, setDateRange] = useState('30d')
+  const [businessFilter, setBusinessFilter] = useState('all')
+  const [businesses, setBusinesses] = useState([])
+  const [appointments, setAppointments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const getCustomerDetails = (appointment) => {
+    const customer = appointment?.customer
+    const notesText = String(appointment?.notes || '')
+    const nameMatch = notesText.match(/Name:\s*([^,]+)/i)
+    const emailMatch = notesText.match(/Email:\s*([^,]+)/i)
+
+    return {
+      id: customer?.id || appointment?.customer_id || emailMatch?.[1]?.trim() || appointment?.id,
+      name: customer?.full_name || nameMatch?.[1]?.trim() || customer?.email || 'Unknown Customer',
+    }
+  }
+
+  const getRangeStart = (range, now = new Date()) => {
+    const from = new Date(now)
+    if (range === '7d') from.setDate(now.getDate() - 7)
+    if (range === '30d') from.setDate(now.getDate() - 30)
+    if (range === '90d') from.setDate(now.getDate() - 90)
+    if (range === '1y') from.setFullYear(now.getFullYear() - 1)
+    return from
+  }
+
+  const loadAnalytics = async ({ silent = false } = {}) => {
+    if (!user?.id) return
+
+    try {
+      if (silent) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
+      }
+
+      const ownerBusinesses = await getBusinessesByOwner(user.id)
+      setBusinesses(ownerBusinesses || [])
+      const rows = await Promise.all((ownerBusinesses || []).map((business) => getBusinessAppointments(business.id)))
+      setAppointments(rows.flat())
+    } catch (error) {
+      console.error('[Analytics] Failed to load:', error)
+      toast.error('Failed to load analytics')
+    } finally {
+      if (silent) {
+        setRefreshing(false)
+      } else {
+        setLoading(false)
       }
     }
-    loadSystemHealth()
-    const interval = setInterval(loadSystemHealth, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // Sample analytics data
-  const analyticsData = {
-    overview: {
-      totalRevenue: 58750,
-      revenueChange: 12.5,
-      totalBookings: 342,
-      bookingsChange: 8.3,
-      totalCustomers: 156,
-      customersChange: 15.7,
-      avgRating: 4.7,
-      ratingChange: 2.1
-    },
-    revenueByService: [
-      { name: 'Cardiology Consultation', revenue: 26400, bookings: 120, percentage: 45 },
-      { name: 'Personal Training', revenue: 16000, bookings: 200, percentage: 27 },
-      { name: 'Legal Consultation', revenue: 16250, bookings: 65, percentage: 28 },
-      { name: 'Strategy Consulting', revenue: 13500, bookings: 45, percentage: 23 },
-      { name: 'Group Yoga', revenue: 8500, bookings: 340, percentage: 14 },
-      { name: 'Tax Preparation', revenue: 12750, bookings: 85, percentage: 22 }
-    ],
-    staffPerformance: [
-      { name: 'Dr. Emily Rodriguez', revenue: 28400, bookings: 120, rating: 5.0, efficiency: 99 },
-      { name: 'James Wilson', revenue: 15600, bookings: 45, rating: 4.9, efficiency: 98 },
-      { name: 'David Wilson', revenue: 16250, bookings: 65, rating: 4.8, efficiency: 96 },
-      { name: 'Alex Johnson', revenue: 8800, bookings: 110, rating: 4.8, efficiency: 94 },
-      { name: 'Robert Chang', revenue: 5250, bookings: 35, rating: 4.6, efficiency: 92 }
-    ],
-    customerMetrics: {
-      newCustomers: 23,
-      returningCustomers: 89,
-      customerRetention: 78.5,
-      avgLifetimeValue: 445,
-      topCustomers: [
-        { name: 'Sarah Johnson', spent: 1250, visits: 15, lastVisit: '2024-09-28' },
-        { name: 'Michael Chen', spent: 1760, visits: 8, lastVisit: '2024-09-25' },
-        { name: 'Lisa Martinez', spent: 1760, visits: 22, lastVisit: '2024-09-30' }
-      ]
-    },
-    timeAnalysis: {
-      peakHours: ['9:00 AM', '2:00 PM', '4:00 PM'],
-      peakDays: ['Tuesday', 'Wednesday', 'Thursday'],
-      avgWaitTime: 12, // minutes
-      avgSessionTime: 68, // minutes
-      utilizationRate: 82 // percentage
-    },
-    categories: [
-      { name: 'Healthcare', revenue: 28400, bookings: 120, growth: 15.2 },
-      { name: 'Professional Services', revenue: 22000, bookings: 95, growth: 8.7 },
-      { name: 'Sports & Fitness', revenue: 18800, bookings: 450, growth: 22.1 },
-      { name: 'Business Consulting', revenue: 15600, bookings: 45, growth: 12.5 }
-    ]
   }
 
-  const getChangeColor = (change) => {
-    return change >= 0 ? 'text-green-600' : 'text-red-600'
+  useEffect(() => {
+    loadAnalytics()
+  }, [user?.id])
+
+  const scopedAppointments = useMemo(() => {
+    if (!appointments.length) return []
+    const from = getRangeStart(dateRange)
+
+    return appointments.filter((appointment) => {
+      if (!appointment.appointment_date) return false
+      const inDate = new Date(appointment.appointment_date) >= from
+      const inBusiness = businessFilter === 'all' || appointment.business_id === businessFilter
+      return inDate && inBusiness
+    })
+  }, [appointments, dateRange, businessFilter])
+
+  const previousRangeAppointments = useMemo(() => {
+    if (!appointments.length) return []
+
+    const now = new Date()
+    const currentFrom = getRangeStart(dateRange, now)
+    const durationMs = now.getTime() - currentFrom.getTime()
+    const previousFrom = new Date(currentFrom.getTime() - durationMs)
+
+    return appointments.filter((appointment) => {
+      if (!appointment.appointment_date) return false
+      const date = new Date(appointment.appointment_date)
+      const inDate = date >= previousFrom && date < currentFrom
+      const inBusiness = businessFilter === 'all' || appointment.business_id === businessFilter
+      return inDate && inBusiness
+    })
+  }, [appointments, dateRange, businessFilter])
+
+  const metrics = useMemo(() => {
+    const totalBookings = scopedAppointments.length
+    const completedBookingsRows = scopedAppointments.filter((apt) => apt.status === 'completed')
+    const activeBookingsRows = scopedAppointments.filter((apt) => ['pending', 'confirmed', 'in-progress'].includes(apt.status))
+
+    const totalRevenue = completedBookingsRows.reduce((sum, apt) => sum + Number(apt?.service?.price || 0), 0)
+
+    const uniqueCustomers = new Set(scopedAppointments.map((apt) => getCustomerDetails(apt).id)).size
+
+    const previousTotalBookings = previousRangeAppointments.length
+    const previousRevenue = previousRangeAppointments
+      .filter((apt) => apt.status === 'completed')
+      .reduce((sum, apt) => sum + Number(apt?.service?.price || 0), 0)
+
+    const growth = {
+      bookings: previousTotalBookings === 0
+        ? (totalBookings > 0 ? 100 : 0)
+        : Math.round(((totalBookings - previousTotalBookings) / previousTotalBookings) * 100),
+      revenue: previousRevenue === 0
+        ? (totalRevenue > 0 ? 100 : 0)
+        : Math.round(((totalRevenue - previousRevenue) / previousRevenue) * 100),
+    }
+
+    const serviceMap = new Map()
+    const customerMap = new Map()
+    const statusMap = new Map([
+      ['pending', 0],
+      ['confirmed', 0],
+      ['in-progress', 0],
+      ['completed', 0],
+      ['cancelled', 0],
+      ['no-show', 0],
+    ])
+
+    for (const apt of scopedAppointments) {
+      const serviceName = apt?.service?.name || 'Service'
+      const serviceRevenue = Number(apt?.service?.price || 0)
+      const serviceItem = serviceMap.get(serviceName) || { name: serviceName, bookings: 0, revenue: 0 }
+      serviceItem.bookings += 1
+      if (apt.status === 'completed') {
+        serviceItem.revenue += serviceRevenue
+      }
+      serviceMap.set(serviceName, serviceItem)
+
+      const customer = getCustomerDetails(apt)
+      const customerItem = customerMap.get(customer.id) || { id: customer.id, name: customer.name, bookings: 0, spent: 0 }
+      customerItem.bookings += 1
+      if (apt.status === 'completed') {
+        customerItem.spent += serviceRevenue
+      }
+      customerMap.set(customer.id, customerItem)
+
+      statusMap.set(apt.status, (statusMap.get(apt.status) || 0) + 1)
+    }
+
+    const topServices = Array.from(serviceMap.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 6)
+    const topCustomers = Array.from(customerMap.values()).sort((a, b) => b.spent - a.spent).slice(0, 5)
+
+    const dailyMap = new Map()
+    for (let i = 6; i >= 0; i -= 1) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const iso = d.toISOString().split('T')[0]
+      dailyMap.set(iso, { date: iso, bookings: 0, revenue: 0 })
+    }
+
+    for (const apt of scopedAppointments) {
+      if (!dailyMap.has(apt.appointment_date)) continue
+      const bucket = dailyMap.get(apt.appointment_date)
+      bucket.bookings += 1
+      if (apt.status === 'completed') {
+        bucket.revenue += Number(apt?.service?.price || 0)
+      }
+    }
+
+    const dailyTrend = Array.from(dailyMap.values())
+
+    return {
+      totalBookings,
+      completedBookings: completedBookingsRows.length,
+      activeBookings: activeBookingsRows.length,
+      totalRevenue,
+      uniqueCustomers,
+      growth,
+      topServices,
+      topCustomers,
+      statusBreakdown: Array.from(statusMap.entries()).map(([status, count]) => ({ status, count })),
+      dailyTrend,
+    }
+  }, [scopedAppointments, previousRangeAppointments])
+
+  const handleExportAnalytics = () => {
+    if (!scopedAppointments.length) {
+      toast.error('No analytics rows to export for selected filters')
+      return
+    }
+
+    const rows = scopedAppointments.map((apt) => ({
+      date: apt.appointment_date || '',
+      status: apt.status || '',
+      service: apt?.service?.name || 'Service',
+      customer: getCustomerDetails(apt).name,
+      price: Number(apt?.service?.price || 0),
+      businessId: apt.business_id || '',
+    }))
+
+    const headers = Object.keys(rows[0])
+    const csv = [
+      headers.join(','),
+      ...rows.map((row) => headers.map((header) => `"${String(row[header] ?? '').replace(/"/g, '""')}"`).join(',')),
+    ].join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.setAttribute('download', `analytics-export-${Date.now()}.csv`)
+    document.body.appendChild(anchor)
+    anchor.click()
+    document.body.removeChild(anchor)
+    URL.revokeObjectURL(url)
+
+    toast.success('Analytics exported')
   }
 
-  const getChangeIcon = (change) => {
-    return change >= 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />
+  if (userLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-secondary-600">Loading analytics...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start gap-4">
         <div>
           <h1 className="text-2xl font-bold text-secondary-900">Analytics Dashboard</h1>
-          <p className="text-secondary-600">Business insights and performance metrics</p>
+          <p className="text-secondary-600">Real booking, revenue, and customer insights</p>
         </div>
-        <div className="flex gap-3">
-          <select 
+        <div className="flex gap-2 flex-wrap">
+          <select
+            value={businessFilter}
+            onChange={(e) => setBusinessFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="all">All Businesses</option>
+            {businesses.map((business) => (
+              <option key={business.id} value={business.id}>{business.name}</option>
+            ))}
+          </select>
+          <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -130,125 +271,27 @@ export default function AnalyticsPage() {
             <option value="90d">Last 90 days</option>
             <option value="1y">Last year</option>
           </select>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => window.location.reload()}
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => alert('Export report functionality coming soon!')}
-          >
+          <Button variant="outline" className="flex items-center gap-2" onClick={handleExportAnalytics}>
             <Download className="h-4 w-4" />
-            Export Report
+            Export
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2" onClick={() => loadAnalytics({ silent: true })}>
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {/* AI System Monitoring */}
-      <div className="mb-6">
-        <Card className={`border-2 ${
-          loadingHealth 
-            ? 'border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50' 
-            : systemHealth.issues?.length > 0 
-              ? 'border-orange-200 bg-gradient-to-r from-orange-50 to-red-50' 
-              : 'border-green-200 bg-gradient-to-r from-green-50 to-emerald-50'
-        }`}>
-          <div className="p-4 sm:p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  loadingHealth 
-                    ? 'bg-blue-500 animate-pulse' 
-                    : systemHealth.issues?.length > 0 
-                      ? 'bg-orange-500' 
-                      : 'bg-green-500'
-                }`}>
-                  {loadingHealth ? (
-                    <Activity className="h-6 w-6 text-white" />
-                  ) : systemHealth.issues?.length > 0 ? (
-                    <AlertTriangle className="h-6 w-6 text-white" />
-                  ) : (
-                    <CheckCircle className="h-6 w-6 text-white" />
-                  )}
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-bold text-gray-900">
-                    🤖 AI System Monitoring
-                  </h3>
-                  {!loadingHealth && (
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      systemHealth.healthScore >= 75 ? 'bg-green-100 text-green-700' :
-                      systemHealth.healthScore >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      Health Score: {Number(systemHealth.healthScore) || 0}/100
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-700 mb-4">
-                  {loadingHealth ? 'Analyzing system health...' : (systemHealth.insights?.summary || 'System health analysis complete')}
-                </p>
-                {loadingHealth ? (
-                  <div className="bg-white rounded-lg p-4 border border-blue-200">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                      <h4 className="font-semibold text-blue-900">Analyzing system metrics...</h4>
-                    </div>
-                  </div>
-                ) : systemHealth.issues?.length > 0 ? (
-                  <div className="space-y-2">
-                    {systemHealth.issues.slice(0, 2).map((issue, idx) => (
-                      <div key={idx} className="bg-white rounded p-2 border border-gray-200 text-xs">
-                        <div className="flex items-center gap-2 mb-1">
-                          {issue.severity === 'high' && <AlertCircle className="h-3 w-3 text-red-500" />}
-                          {issue.severity === 'medium' && <AlertTriangle className="h-3 w-3 text-orange-500" />}
-                          {issue.severity === 'low' && <Activity className="h-3 w-3 text-yellow-500" />}
-                          <span className="font-semibold">{issue.type.replace(/_/g, ' ').toUpperCase()}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-xs ${
-                            issue.severity === 'high' ? 'bg-red-100 text-red-700' :
-                            issue.severity === 'medium' ? 'bg-orange-100 text-orange-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>{issue.severity}</span>
-                        </div>
-                        <p className="text-gray-600 mb-1">{issue.impact}</p>
-                        <p className="text-gray-500">💡 {issue.recommendation}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg p-3 border border-green-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <h4 className="font-semibold text-green-900">All Systems Operating Normally</h4>
-                    </div>
-                    <p className="text-xs text-gray-700">AI monitoring is continuously analyzing your business performance.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Key Metrics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold">KES {analyticsData.overview.totalRevenue.toLocaleString()}</p>
-                <div className={`flex items-center gap-1 text-sm ${getChangeColor(analyticsData.overview.revenueChange)}`}>
-                  {getChangeIcon(analyticsData.overview.revenueChange)}
-                  <span>{Math.abs(analyticsData.overview.revenueChange)}%</span>
-                </div>
+                <p className="text-sm text-gray-600">Revenue</p>
+                <p className="text-2xl font-bold">KSh {metrics.totalRevenue.toLocaleString()}</p>
+                <p className={`text-xs ${metrics.growth.revenue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {metrics.growth.revenue >= 0 ? '+' : ''}{metrics.growth.revenue}% vs prev period
+                </p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -259,12 +302,11 @@ export default function AnalyticsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold">{analyticsData.overview.totalBookings}</p>
-                <div className={`flex items-center gap-1 text-sm ${getChangeColor(analyticsData.overview.bookingsChange)}`}>
-                  {getChangeIcon(analyticsData.overview.bookingsChange)}
-                  <span>{Math.abs(analyticsData.overview.bookingsChange)}%</span>
-                </div>
+                <p className="text-sm text-gray-600">Bookings</p>
+                <p className="text-2xl font-bold">{metrics.totalBookings}</p>
+                <p className={`text-xs ${metrics.growth.bookings >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {metrics.growth.bookings >= 0 ? '+' : ''}{metrics.growth.bookings}% vs prev period
+                </p>
               </div>
               <Calendar className="h-8 w-8 text-blue-600" />
             </div>
@@ -275,14 +317,10 @@ export default function AnalyticsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Customers</p>
-                <p className="text-2xl font-bold">{analyticsData.overview.totalCustomers}</p>
-                <div className={`flex items-center gap-1 text-sm ${getChangeColor(analyticsData.overview.customersChange)}`}>
-                  {getChangeIcon(analyticsData.overview.customersChange)}
-                  <span>{Math.abs(analyticsData.overview.customersChange)}%</span>
-                </div>
+                <p className="text-sm text-gray-600">Active</p>
+                <p className="text-2xl font-bold">{metrics.activeBookings}</p>
               </div>
-              <Users className="h-8 w-8 text-purple-600" />
+              <TrendingUp className="h-8 w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -291,265 +329,139 @@ export default function AnalyticsPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Average Rating</p>
-                <p className="text-2xl font-bold">{analyticsData.overview.avgRating}</p>
-                <div className={`flex items-center gap-1 text-sm ${getChangeColor(analyticsData.overview.ratingChange)}`}>
-                  {getChangeIcon(analyticsData.overview.ratingChange)}
-                  <span>{Math.abs(analyticsData.overview.ratingChange)}%</span>
-                </div>
+                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-2xl font-bold">{metrics.completedBookings}</p>
               </div>
-              <Star className="h-8 w-8 text-yellow-600" />
+              <CheckCircle className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Customers</p>
+                <p className="text-2xl font-bold">{metrics.uniqueCustomers}</p>
+              </div>
+              <Users className="h-8 w-8 text-indigo-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Revenue by Service */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Bookings Trend (Last 7 Days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-7 gap-3 items-end h-44">
+              {metrics.dailyTrend.map((day) => {
+                const maxBookings = Math.max(...metrics.dailyTrend.map((d) => d.bookings), 1)
+                const barHeight = Math.max(8, Math.round((day.bookings / maxBookings) * 120))
+                return (
+                  <div key={day.date} className="flex flex-col items-center gap-2">
+                    <div className="text-xs text-secondary-500">{day.bookings}</div>
+                    <div className="w-full bg-blue-500/15 rounded-md flex items-end" style={{ height: 128 }}>
+                      <div className="w-full bg-blue-600 rounded-md transition-all" style={{ height: barHeight }} />
+                    </div>
+                    <div className="text-[11px] text-secondary-500">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Status Mix</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {metrics.statusBreakdown
+                .filter((item) => item.count > 0)
+                .sort((a, b) => b.count - a.count)
+                .map((item) => (
+                  <div key={item.status} className="flex justify-between items-center p-2 bg-gray-50 rounded-md text-sm">
+                    <span className="capitalize text-secondary-700">{item.status}</span>
+                    <span className="font-semibold">{item.count}</span>
+                  </div>
+                ))}
+              {metrics.statusBreakdown.every((item) => item.count === 0) && (
+                <p className="text-sm text-secondary-500">No status data available.</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Revenue by Service</CardTitle>
+            <CardTitle>Top Services by Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analyticsData.revenueByService.map((service, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
+            <div className="space-y-3">
+              {metrics.topServices.map((service) => (
+                <div key={service.name} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <div>
                     <p className="font-medium text-gray-900">{service.name}</p>
                     <p className="text-sm text-gray-600">{service.bookings} bookings</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-600">KES {service.revenue.toLocaleString()}</p>
-                    <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${service.percentage}%` }}
-                      ></div>
-                    </div>
-                  </div>
+                  <p className="font-bold text-green-600">KSh {service.revenue.toLocaleString()}</p>
                 </div>
               ))}
+              {metrics.topServices.length === 0 && <p className="text-sm text-secondary-500">No service revenue data yet.</p>}
             </div>
           </CardContent>
         </Card>
 
-        {/* Category Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>Category Performance</CardTitle>
+            <CardTitle>Top Customers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {analyticsData.categories.map((category, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="space-y-3">
+              {metrics.topCustomers.map((customer) => (
+                <div key={customer.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium text-gray-900">{category.name}</p>
-                    <p className="text-sm text-gray-600">{category.bookings} bookings</p>
+                    <p className="font-medium text-gray-900">{customer.name}</p>
+                    <p className="text-sm text-gray-600">{customer.bookings} bookings</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">KES {category.revenue.toLocaleString()}</p>
-                    <div className={`flex items-center gap-1 text-sm ${getChangeColor(category.growth)}`}>
-                      <TrendingUp className="h-3 w-3" />
-                      <span>{category.growth}%</span>
+                    <p className="font-bold text-green-600">KSh {customer.spent.toLocaleString()}</p>
+                    <div className="flex items-center justify-end gap-1 text-xs text-yellow-600">
+                      <Star className="h-3 w-3 fill-current" />
+                      Real Data
                     </div>
                   </div>
                 </div>
               ))}
+              {metrics.topCustomers.length === 0 && <p className="text-sm text-secondary-500">No customer spending data yet.</p>}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Staff Performance */}
       <Card>
         <CardHeader>
-          <CardTitle>Staff Performance</CardTitle>
+          <CardTitle>Analytics Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2 font-medium text-gray-700">Staff Member</th>
-                  <th className="text-right p-2 font-medium text-gray-700">Revenue</th>
-                  <th className="text-right p-2 font-medium text-gray-700">Bookings</th>
-                  <th className="text-right p-2 font-medium text-gray-700">Rating</th>
-                  <th className="text-right p-2 font-medium text-gray-700">Efficiency</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analyticsData.staffPerformance.map((staff, index) => (
-                  <tr key={index} className="border-b hover:bg-gray-50">
-                    <td className="p-2">{staff.name}</td>
-                    <td className="text-right p-2 font-semibold text-green-600">
-                      KES {staff.revenue.toLocaleString()}
-                    </td>
-                    <td className="text-right p-2">{staff.bookings}</td>
-                    <td className="text-right p-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                        <span>{staff.rating}</span>
-                      </div>
-                    </td>
-                    <td className="text-right p-2">
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                        {staff.efficiency}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Customer Insights & Time Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Customer Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm text-blue-600">New Customers</p>
-                  <p className="text-xl font-bold text-blue-800">{analyticsData.customerMetrics.newCustomers}</p>
-                </div>
-                <div className="bg-green-50 p-3 rounded-lg">
-                  <p className="text-sm text-green-600">Returning</p>
-                  <p className="text-xl font-bold text-green-800">{analyticsData.customerMetrics.returningCustomers}</p>
-                </div>
-                <div className="bg-purple-50 p-3 rounded-lg">
-                  <p className="text-sm text-purple-600">Retention Rate</p>
-                  <p className="text-xl font-bold text-purple-800">{analyticsData.customerMetrics.customerRetention}%</p>
-                </div>
-                <div className="bg-orange-50 p-3 rounded-lg">
-                  <p className="text-sm text-orange-600">Avg LTV</p>
-                  <p className="text-xl font-bold text-orange-800">KES {analyticsData.customerMetrics.avgLifetimeValue.toLocaleString()}</p>
-                </div>
-              </div>
-              
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Top Customers</h4>
-                <div className="space-y-2">
-                  {analyticsData.customerMetrics.topCustomers.map((customer, index) => (
-                    <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                      <div>
-                        <p className="font-medium text-sm">{customer.name}</p>
-                        <p className="text-xs text-gray-600">{customer.visits} visits</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">KES {customer.spent.toLocaleString()}</p>
-                        <p className="text-xs text-gray-600">{customer.lastVisit}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Operational Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Peak Performance</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-50 p-3 rounded">
-                    <p className="text-sm text-gray-600">Peak Hours</p>
-                    <div className="mt-1">
-                      {analyticsData.timeAnalysis.peakHours.map((hour, index) => (
-                        <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1 mb-1">
-                          {hour}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 p-3 rounded">
-                    <p className="text-sm text-gray-600">Peak Days</p>
-                    <div className="mt-1">
-                      {analyticsData.timeAnalysis.peakDays.map((day, index) => (
-                        <span key={index} className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mr-1 mb-1">
-                          {day}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex justify-between items-center p-3 bg-yellow-50 rounded">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-yellow-600" />
-                    <span className="text-sm">Avg Wait Time</span>
-                  </div>
-                  <span className="font-bold">{analyticsData.timeAnalysis.avgWaitTime} min</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">Avg Session</span>
-                  </div>
-                  <span className="font-bold">{analyticsData.timeAnalysis.avgSessionTime} min</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded">
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Utilization</span>
-                  </div>
-                  <span className="font-bold">{analyticsData.timeAnalysis.utilizationRate}%</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Analytics Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Analytics Tools</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Custom reports functionality coming soon!')}
-            >
-              <BarChart3 className="h-5 w-5" />
-              <span>Custom Reports</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button variant="outline" className="h-14 flex items-center justify-center gap-2" onClick={handleExportAnalytics}>
+              <Download className="h-4 w-4" />
+              Export Filtered Report
             </Button>
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Forecasting functionality coming soon!')}
-            >
-              <TrendingUp className="h-5 w-5" />
-              <span>Forecasting</span>
+            <Button variant="outline" className="h-14 flex items-center justify-center gap-2" onClick={() => loadAnalytics({ silent: true })}>
+              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh Data
             </Button>
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Benchmarks functionality coming soon!')}
-            >
-              <Award className="h-5 w-5" />
-              <span>Benchmarks</span>
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-16 flex flex-col items-center justify-center gap-2"
-              onClick={() => alert('Export data functionality coming soon!')}
-            >
-              <Download className="h-5 w-5" />
-              <span>Export Data</span>
+            <Button variant="outline" className="h-14 flex items-center justify-center gap-2" onClick={() => toast.success('Coming soon: scheduled analytics email')}>
+              <Clock className="h-4 w-4" />
+              Schedule Report
             </Button>
           </div>
         </CardContent>
